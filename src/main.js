@@ -10,6 +10,7 @@
 
 import { createGeneratorCard } from "./ui/card.js";
 import { copyToClipboard } from "./ui/clipboard.js";
+import { getRefreshAllToastMessage } from "./ui/refresh.js";
 import { generateAPIKey, estimateEntropy as estimateAPIKeyEntropy } from "./generators/api-key.js";
 import { generatePassword, estimateEntropy as estimatePasswordEntropy } from "./generators/password.js";
 import { generatePassphrase, estimateEntropy as estimatePassphraseEntropy } from "./generators/passphrase.js";
@@ -20,35 +21,106 @@ import { generateSessionToken } from "./generators/session-token.js";
 import { generateCSRFToken } from "./generators/csrf-token.js";
 import { generateTOTPSecret } from "./generators/totp-secret.js";
 
+export const GENERATE_PLACEHOLDER = "Generate a new value to preview it here.";
+const REFRESH_ALL_DEFAULT_LABEL = `<span class="material-symbols-outlined text-lg">autorenew</span>Refresh All`;
+const REFRESH_ALL_LOADING_LABEL = `<span class="material-symbols-outlined animate-pulse text-lg">progress_activity</span>Refreshing…`;
+
 /**
  * Checks that the Web Crypto API is available.
  * crypto.subtle is undefined in insecure contexts (plain HTTP, file://).
  * This is a hard requirement — we fail-loud, not silently.
  */
-function checkSecureContext() {
-  if (!globalThis.crypto || !globalThis.crypto.subtle) {
-    const app = document.getElementById("app");
-    if (!app) return false;
+export function isSecureContextAvailable() {
+  return Boolean(globalThis.crypto && globalThis.crypto.subtle);
+}
 
-    const banner = document.createElement("div");
-    banner.className = "error-banner";
-    banner.setAttribute("role", "alert");
-    banner.innerHTML = `
-      <strong>Secure context required</strong><br>
-      Web Crypto API (crypto.subtle) is not available.<br>
-      RandKeyKit requires HTTPS or localhost to generate cryptographic keys.
+export function applyInsecureContextState({ bannerHost, cards, placeholder = GENERATE_PLACEHOLDER }) {
+  if (bannerHost) {
+    bannerHost.className = "mt-6 rounded-[28px] border border-rose-400/20 bg-rose-400/10 p-5 text-rose-50 shadow-[0_20px_60px_rgba(127,29,29,0.18)]";
+    bannerHost.hidden = false;
+    bannerHost.setAttribute("role", "alert");
+    bannerHost.innerHTML = `
+      <div class="flex items-start gap-4">
+        <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-rose-300/20 bg-rose-300/10">
+          <span class="material-symbols-outlined text-[22px] text-rose-100">warning</span>
+        </div>
+        <div>
+          <p class="text-sm font-semibold uppercase tracking-[0.2em] text-rose-100/80">Secure context required</p>
+          <h2 class="mt-2 font-display text-2xl font-semibold text-white">Web Crypto is unavailable in this context.</h2>
+          <p class="mt-3 max-w-3xl text-sm leading-7 text-rose-50/90">RandKeyKit requires HTTPS or localhost to access crypto.subtle and generate cryptographic keys safely. Open this app behind TLS or on localhost and try again.</p>
+        </div>
+      </div>
     `;
-    app.prepend(banner);
-
-    // Disable all Generate buttons that may already exist
-    document.querySelectorAll(".btn-primary").forEach((btn) => {
-      btn.disabled = true;
-      btn.textContent = "Unavailable";
-    });
-
-    return false;
   }
-  return true;
+
+  cards.forEach((card) => {
+    const output = card.querySelector("output");
+    const button = card.querySelector('[data-action="generate"]') || card.querySelector("button");
+    if (output) output.textContent = placeholder;
+    if (button) button.disabled = true;
+  });
+}
+
+function checkSecureContext() {
+  if (isSecureContextAvailable()) return true;
+
+  const bannerHost = document.getElementById("secure-context-banner");
+  applyInsecureContextState({ bannerHost, cards: [] });
+  return false;
+}
+
+export function createToastController(toast) {
+  function showToast(message) {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.remove("opacity-0", "translate-y-6");
+    toast.classList.add("opacity-100", "translate-y-0");
+    clearTimeout(showToast.timeoutId);
+    showToast.timeoutId = setTimeout(() => {
+      toast.classList.add("opacity-0", "translate-y-6");
+      toast.classList.remove("opacity-100", "translate-y-0");
+    }, 1800);
+  }
+
+  showToast.timeoutId = 0;
+  return showToast;
+}
+
+export function renderCards({ app, configs, createCard, copyValue, showToast, secure }) {
+  const cards = configs.map((config) => createCard(config, copyValue, showToast));
+
+  cards.forEach((card) => {
+    app.appendChild(card);
+  });
+
+  if (!secure) {
+    const bannerHost = document.getElementById("secure-context-banner");
+    applyInsecureContextState({ bannerHost, cards });
+  }
+
+  return cards;
+}
+
+export function wireRefreshAll({ refreshAllButton, cards, secure, showToast }) {
+  if (!refreshAllButton) return;
+
+  refreshAllButton.addEventListener("click", async () => {
+    if (!secure) {
+      showToast("Refresh unavailable without HTTPS or localhost.");
+      return;
+    }
+
+    refreshAllButton.disabled = true;
+    refreshAllButton.innerHTML = REFRESH_ALL_LOADING_LABEL;
+    try {
+      const results = await Promise.allSettled(cards.map((card) => card.generateValue()));
+      const failures = results.filter((result) => result.status === "rejected").length;
+      showToast(getRefreshAllToastMessage(cards.length, failures));
+    } finally {
+      refreshAllButton.disabled = false;
+      refreshAllButton.innerHTML = REFRESH_ALL_DEFAULT_LABEL;
+    }
+  });
 }
 
 /**
@@ -60,11 +132,12 @@ const CARD_CONFIGS = [
   {
     id: "api-key",
     title: "API Key",
+    icon: "api",
     description: "Random string for authenticating API clients. Use 48+ characters in production.",
     generator: generateAPIKey,
     defaults: { length: 48, format: "alphanumeric", prefix: "" },
     controls: [
-      { type: "range", label: "Length", param: "length", min: 16, max: 128, default: 48 },
+      { type: "range", label: "Length", param: "length", min: 16, max: 128, default: 48, hint: "characters" },
       { type: "select", label: "Format", param: "format", default: "alphanumeric", options: [
         { value: "alphanumeric", label: "Alphanumeric" },
         { value: "hex", label: "Hex" },
@@ -78,16 +151,19 @@ const CARD_CONFIGS = [
   {
     id: "password",
     title: "Password",
+    icon: "password",
     description: "Strong password with configurable character groups. At least 12 characters recommended.",
     generator: generatePassword,
     defaults: { length: 20, uppercase: true, lowercase: true, digits: true, symbols: true, excludeAmbiguous: false },
     controls: [
-      { type: "range", label: "Length", param: "length", min: 8, max: 64, default: 20 },
-      { type: "checkbox", label: "Uppercase", param: "uppercase", default: true },
-      { type: "checkbox", label: "Lowercase", param: "lowercase", default: true },
-      { type: "checkbox", label: "Digits", param: "digits", default: true },
-      { type: "checkbox", label: "Symbols", param: "symbols", default: true },
-      { type: "checkbox", label: "Exclude ambiguous (0 O I l)", param: "excludeAmbiguous", default: false },
+      { type: "range", label: "Length", param: "length", min: 8, max: 64, default: 20, hint: "characters" },
+      { type: "checkbox-group", label: "Character groups", options: [
+        { label: "Uppercase", param: "uppercase", default: true },
+        { label: "Lowercase", param: "lowercase", default: true },
+        { label: "Digits", param: "digits", default: true },
+        { label: "Symbols", param: "symbols", default: true },
+      ]},
+      { type: "checkbox", label: "Exclude ambiguous", param: "excludeAmbiguous", default: false, description: "Remove 0, O, I, l, and 1 from the active charset." },
     ],
     showEntropy: true,
     entropy: (params) => estimatePasswordEntropy(params),
@@ -95,11 +171,12 @@ const CARD_CONFIGS = [
   {
     id: "passphrase",
     title: "Passphrase",
+    icon: "chat_bubble_outline",
     description: "Memorable passphrase from random dictionary words. Easier to type and remember than passwords.",
     generator: generatePassphrase,
     defaults: { words: 5, separator: "-", capitalize: false, appendNumber: false },
     controls: [
-      { type: "range", label: "Words", param: "words", min: 3, max: 10, default: 5 },
+      { type: "range", label: "Words", param: "words", min: 3, max: 10, default: 5, hint: "count" },
       { type: "text", label: "Separator", param: "separator", default: "-" },
       { type: "checkbox", label: "Capitalize", param: "capitalize", default: false },
       { type: "checkbox", label: "Append number", param: "appendNumber", default: false },
@@ -110,11 +187,12 @@ const CARD_CONFIGS = [
   {
     id: "salt",
     title: "Salt",
+    icon: "grain",
     description: "Random bytes for password hashing. Use at least 16 bytes (128 bits) for bcrypt/scrypt/argon2.",
     generator: generateSalt,
     defaults: { bytes: 16, format: "hex" },
     controls: [
-      { type: "range", label: "Bytes", param: "bytes", min: 8, max: 64, default: 16 },
+      { type: "range", label: "Bytes", param: "bytes", min: 8, max: 64, default: 16, hint: "size" },
       { type: "select", label: "Format", param: "format", default: "hex", options: [
         { value: "hex", label: "Hex" },
         { value: "base64", label: "Base64" },
@@ -125,11 +203,12 @@ const CARD_CONFIGS = [
   {
     id: "aes-key",
     title: "AES Key",
+    icon: "security",
     description: "Symmetric encryption key for AES-GCM. 256-bit recommended for long-term security.",
     generator: generateAESKey,
     defaults: { bits: 256, format: "base64" },
     controls: [
-      { type: "select", label: "Key size", param: "bits", default: 256, options: [
+      { type: "select", label: "Key size", param: "bits", default: 256, parse: Number, options: [
         { value: 128, label: "128-bit" },
         { value: 192, label: "192-bit" },
         { value: 256, label: "256-bit" },
@@ -144,11 +223,12 @@ const CARD_CONFIGS = [
   {
     id: "hmac-key",
     title: "HMAC Key",
+    icon: "key_visualizer",
     description: "Secret key for HMAC-SHA-256 message authentication. Use at least 256 bits.",
     generator: generateHMACKey,
     defaults: { bits: 256, format: "base64" },
     controls: [
-      { type: "select", label: "Key size", param: "bits", default: 256, options: [
+      { type: "select", label: "Key size", param: "bits", default: 256, parse: Number, options: [
         { value: 256, label: "256-bit" },
         { value: 384, label: "384-bit" },
         { value: 512, label: "512-bit" },
@@ -163,11 +243,12 @@ const CARD_CONFIGS = [
   {
     id: "session-token",
     title: "Session Token",
+    icon: "timer",
     description: "Opaque token for session management. Use 32+ bytes and always send over HTTPS.",
     generator: generateSessionToken,
     defaults: { bytes: 32, format: "base64url" },
     controls: [
-      { type: "range", label: "Bytes", param: "bytes", min: 16, max: 64, default: 32 },
+      { type: "range", label: "Bytes", param: "bytes", min: 16, max: 64, default: 32, hint: "size" },
       { type: "select", label: "Format", param: "format", default: "base64url", options: [
         { value: "hex", label: "Hex" },
         { value: "base64url", label: "Base64URL" },
@@ -178,11 +259,12 @@ const CARD_CONFIGS = [
   {
     id: "csrf-token",
     title: "CSRF Token",
+    icon: "shield",
     description: "Anti-CSRF token for form submissions. Generate per-session and validate server-side.",
     generator: generateCSRFToken,
     defaults: { bytes: 32, format: "base64url" },
     controls: [
-      { type: "range", label: "Bytes", param: "bytes", min: 16, max: 64, default: 32 },
+      { type: "range", label: "Bytes", param: "bytes", min: 16, max: 64, default: 32, hint: "size" },
       { type: "select", label: "Format", param: "format", default: "base64url", options: [
         { value: "hex", label: "Hex" },
         { value: "base64url", label: "Base64URL" },
@@ -193,11 +275,12 @@ const CARD_CONFIGS = [
   {
     id: "totp-secret",
     title: "TOTP Secret",
+    icon: "cell_tower",
     description: "Base32-encoded secret for Time-based One-Time Passwords (Google Authenticator compatible).",
     generator: generateTOTPSecret,
     defaults: { bits: 160 },
     controls: [
-      { type: "select", label: "Secret size", param: "bits", default: 160, options: [
+      { type: "select", label: "Secret size", param: "bits", default: 160, parse: Number, options: [
         { value: 160, label: "160-bit (20B)" },
         { value: 256, label: "256-bit (32B)" },
         { value: 320, label: "320-bit (40B)" },
@@ -209,35 +292,39 @@ const CARD_CONFIGS = [
 
 // ---- Boot sequence ----
 
-function boot() {
+export function boot() {
   const app = document.getElementById("app");
+  const refreshAll = document.getElementById("refresh-all");
+  const toast = document.getElementById("toast");
   if (!app) {
     console.error("RandKeyKit: #app container not found.");
     return;
   }
+
+  const showToast = createToastController(toast);
 
   // Secure context check — must come before card creation
   // so we don't render cards that will fail
   const secure = checkSecureContext();
 
   // Create all cards
-  CARD_CONFIGS.forEach((config) => {
-    const card = createGeneratorCard(config, copyToClipboard);
-    app.appendChild(card);
+  const cards = renderCards({
+    app,
+    configs: CARD_CONFIGS,
+    createCard: createGeneratorCard,
+    copyValue: copyToClipboard,
+    showToast,
+    secure,
   });
 
-  // If not in a secure context, disable all Generate buttons
-  if (!secure) {
-    document.querySelectorAll(".btn-primary").forEach((btn) => {
-      btn.disabled = true;
-      btn.textContent = "Unavailable";
-    });
-  }
+  wireRefreshAll({ refreshAllButton: refreshAll, cards, secure, showToast });
 }
 
 // Run on DOM ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", boot);
-} else {
-  boot();
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", boot);
+  } else {
+    boot();
+  }
 }
