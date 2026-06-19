@@ -10,9 +10,9 @@
 
 import { createGeneratorCard } from "./ui/card.js";
 import { copyToClipboard } from "./ui/clipboard.js";
-import { generateAPIKey } from "./generators/api-key.js";
-import { generatePassword } from "./generators/password.js";
-import { generatePassphrase } from "./generators/passphrase.js";
+import { generateAPIKey, estimateEntropy as estimateAPIKeyEntropy } from "./generators/api-key.js";
+import { generatePassword, estimateEntropy as estimatePasswordEntropy } from "./generators/password.js";
+import { generatePassphrase, estimateEntropy as estimatePassphraseEntropy } from "./generators/passphrase.js";
 import { generateSalt } from "./generators/salt.js";
 import { generateAESKey } from "./generators/aes-key.js";
 import { generateHMACKey } from "./generators/hmac-key.js";
@@ -73,6 +73,7 @@ const CARD_CONFIGS = [
       { type: "text", label: "Prefix", param: "prefix", default: "", placeholder: "Optional prefix (safe ASCII)" },
     ],
     showEntropy: true,
+    entropy: (params) => estimateAPIKeyEntropy(params),
   },
   {
     id: "password",
@@ -89,6 +90,7 @@ const CARD_CONFIGS = [
       { type: "checkbox", label: "Exclude ambiguous (0 O I l)", param: "excludeAmbiguous", default: false },
     ],
     showEntropy: true,
+    entropy: (params) => estimatePasswordEntropy(params),
   },
   {
     id: "passphrase",
@@ -103,6 +105,7 @@ const CARD_CONFIGS = [
       { type: "checkbox", label: "Append number", param: "appendNumber", default: false },
     ],
     showEntropy: true,
+    entropy: (params) => estimatePassphraseEntropy(params),
   },
   {
     id: "salt",

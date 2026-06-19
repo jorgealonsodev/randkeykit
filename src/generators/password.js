@@ -96,3 +96,22 @@ export function generatePassword(params = {}) {
 
   throw new Error("Failed to generate a password satisfying all group requirements. Try a longer length.");
 }
+
+/**
+ * Estimates password entropy from parameters without generating anything.
+ * @param {Object} params — same shape as generatePassword
+ * @returns {number} entropy in bits (integer)
+ */
+export function estimateEntropy(params = {}) {
+  const length = params.length ?? 20;
+  const { charsetSize } = buildCharset({
+    uppercase: params.uppercase ?? true,
+    lowercase: params.lowercase ?? true,
+    digits: params.digits ?? true,
+    symbols: params.symbols ?? true,
+    excludeAmbiguous: params.excludeAmbiguous ?? false,
+  });
+
+  if (charsetSize === 0) return 0;
+  return Math.floor(length * Math.log2(charsetSize));
+}

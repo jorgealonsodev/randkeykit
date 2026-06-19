@@ -48,3 +48,13 @@ export function generatePassphrase(params = {}) {
 
   return { value, entropy };
 }
+
+/**
+ * Estimates passphrase entropy from parameters without generating anything.
+ * @param {Object} params — same shape as generatePassphrase
+ * @returns {number} entropy in bits (integer)
+ */
+export function estimateEntropy(params = {}) {
+  const wordCount = params.words ?? 5;
+  return Math.floor(wordCount * Math.log2(WORDS.length));
+}

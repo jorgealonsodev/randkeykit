@@ -95,3 +95,20 @@ export function generateAPIKey(params = {}) {
 
   return { value: fullValue, entropy };
 }
+
+/**
+ * Estimates API key entropy from parameters without generating anything.
+ * @param {Object} params — same shape as generateAPIKey
+ * @returns {number} entropy in bits (integer)
+ */
+export function estimateEntropy(params = {}) {
+  const length = params.length ?? 48;
+  const format = params.format ?? "alphanumeric";
+
+  let charsetSize;
+  if (format === "alphanumeric") charsetSize = 62;
+  else if (format === "hex") charsetSize = 16;
+  else charsetSize = 64; // base64url
+
+  return Math.floor(length * Math.log2(charsetSize));
+}

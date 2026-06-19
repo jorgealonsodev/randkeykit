@@ -139,6 +139,10 @@ export function createGeneratorCard(config, copyToClipboard) {
 
   function onParamChange(key, value) {
     params[key] = value;
+    if (entropyBadge && typeof config.entropy === "function") {
+      const entropy = config.entropy(params);
+      entropyBadge.innerHTML = `Entropy: <span class="entropy-value">~${entropy} bits</span>`;
+    }
   }
 
   // Render controls
@@ -174,6 +178,10 @@ export function createGeneratorCard(config, copyToClipboard) {
   if (config.showEntropy) {
     entropyBadge = document.createElement("span");
     entropyBadge.className = "entropy-badge";
+    if (typeof config.entropy === "function") {
+      const initialEntropy = config.entropy(config.defaults);
+      entropyBadge.innerHTML = `Entropy: <span class="entropy-value">~${initialEntropy} bits</span>`;
+    }
     actions.appendChild(entropyBadge);
   }
 
@@ -202,7 +210,7 @@ export function createGeneratorCard(config, copyToClipboard) {
         resultOutput.classList.remove("copied-flash");
 
         if (entropyBadge && result.entropy !== undefined) {
-          entropyBadge.innerHTML = `Entropy: <span class="entropy-value">${result.entropy} bits</span>`;
+          entropyBadge.innerHTML = `Entropy: <span class="entropy-value">~${result.entropy} bits</span>`;
         }
       }
     } catch (err) {
