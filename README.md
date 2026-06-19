@@ -99,6 +99,30 @@ La app es completamente estática. Se puede desplegar en:
 
 Asegurate de que el hosting sirva con **HTTPS**. La app no funciona sin él.
 
+## Despliegue con Docker
+
+La app requiere HTTPS para la Web Crypto API. El contenedor sirve HTTP plano (puerto 8080), por lo que necesitás un proxy inverso externo con terminación TLS por delante.
+
+```bash
+docker compose build && docker compose up -d
+```
+
+Para usar un puerto host distinto:
+
+```bash
+PORT=9000 docker compose up -d
+```
+
+Verificar que el contenedor está saludable:
+
+```bash
+docker compose ps
+```
+
+Debería mostrar `(healthy)` después de ~35 segundos.
+
+El contenedor sirve archivos estáticos con nginx. **No** maneja TLS ni configuración de proxy — eso queda del lado del reverse proxy que exponga HTTPS al exterior.
+
 ## Licencia
 
 MIT
