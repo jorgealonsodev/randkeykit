@@ -1,70 +1,88 @@
 # RandKeyKit
 
-Generador de claves, contraseñas y tokens criptográficos que se ejecuta completamente en tu navegador. **Nada se envía a ningún servidor.** Toda la generación ocurre en el cliente usando la Web Crypto API.
+A generator for cryptographic keys, passwords, and tokens that runs entirely in your browser. **Nothing is sent to any server.** All generation happens on the client using the Web Crypto API.
 
-## Generadores incluidos
+## Included generators
 
-| # | Generador | Por defecto | Descripción |
-|---|-----------|-------------|-------------|
-| 1 | API Key | 48 chars, alfanumérico | Claves para autenticación de APIs |
-| 2 | Contraseña | 20 chars, todos los grupos | Contraseñas robustas con caracteres configurables |
-| 3 | Passphrase | 5 palabras con guiones | Frases memorables usando una wordlist EFF |
-| 4 | Salt | 16 bytes, hex | Valores aleatorios para hashing de contraseñas |
-| 5 | Clave AES | 256 bits, Base64 | Clave simétrica AES-GCM |
-| 6 | Clave HMAC | 256 bits, Base64 | Clave para HMAC-SHA-256 |
-| 7 | Token de sesión | 32 bytes, Base64URL | Token opaco para gestión de sesiones |
-| 8 | Token CSRF | 32 bytes, Base64URL | Token anti-CSRF para formularios |
-| 9 | Secreto TOTP | 160 bits, Base32 | Secreto para Google Authenticator y apps compatibles |
+| # | Generator | Default | Description |
+|---|-----------|---------|-------------|
+| 1 | API Key | 48 chars, alphanumeric | Keys for API authentication |
+| 2 | Password | 20 chars, all groups | Strong passwords with configurable character sets |
+| 3 | Passphrase | 5 hyphen-separated words | Memorable phrases from an EFF wordlist |
+| 4 | Salt | 16 bytes, hex | Random values for password hashing |
+| 5 | AES Key | 256-bit, Base64 | Symmetric AES-GCM key |
+| 6 | HMAC Key | 256-bit, Base64 | Key for HMAC-SHA-256 |
+| 7 | Session Token | 32 bytes, Base64URL | Opaque token for session management |
+| 8 | CSRF Token | 32 bytes, Base64URL | Anti-CSRF token for forms |
+| 9 | TOTP Secret | 160-bit, Base32 | Secret for Google Authenticator and compatible apps |
 
-## Requisitos
+## Requirements
 
-- **HTTPS o localhost obligatorio.** La Web Crypto API (`crypto.subtle`) no está disponible en contextos inseguros (HTTP sin TLS, `file://`). La app lo detecta y muestra un error visible si no se cumple.
-- Navegador moderno con soporte de ES modules y Web Crypto API (Chrome, Firefox, Safari, Edge actuales).
-- Sin dependencias externas, sin CDN, sin build step.
+- **HTTPS or localhost required.** The Web Crypto API (`crypto.subtle`) is unavailable in insecure contexts (HTTP without TLS, `file://`). The app detects this and shows a visible error if the requirement is not met.
+- A modern browser with ES modules and Web Crypto API support (current Chrome, Firefox, Safari, Edge).
+- No external dependencies and no CDN at runtime.
 
-## Cómo ejecutar localmente
+## Running locally
 
-Serví el directorio raíz con cualquier servidor HTTP estático. Ejemplos:
+Serve the project root with any static HTTP server. Examples:
 
 ```bash
 # Python 3
 python3 -m http.server 8000
 
-# Node.js (con npx)
+# Node.js (with npx)
 npx serve .
 
 # PHP
 php -S localhost:8000
 ```
 
-Luego abrí `http://localhost:8000` en tu navegador.
+Then open `http://localhost:8000` in your browser.
 
-**No uses `file://`** — la Web Crypto API lo rechaza.
+**Do not use `file://`** — the Web Crypto API rejects it.
 
-## Verificación
+## Styles (Tailwind build)
 
-Para ejecutar el harness de verificación automatizado, abrí `http://localhost:8000/verify.html` después de iniciar el servidor. El harness ejecuta más de 30 assertions contra todos los generadores y primitivas criptográficas.
+The UI is styled with Tailwind CSS, compiled to a single self-hosted stylesheet (`assets/tailwind.css`). Fonts (Geist, Inter, JetBrains Mono, Material Symbols) are self-hosted under `assets/fonts/`, so there is no CDN at runtime.
 
-## Seguridad
+```bash
+# One-off build
+npm run build:css
 
-- **100% cliente.** No se hace ninguna petición de red durante la generación. Verificable en la pestaña Network de DevTools.
-- **Sin almacenamiento.** Los valores generados no se guardan en `localStorage`, cookies, ni ningún mecanismo de persistencia. Refrescá la página y desaparecen.
-- **CSP estricto.** La página usa `Content-Security-Policy` sin `unsafe-inline`, eliminando una clase entera de ataques de inyección.
-- **Sin `Math.random`.** Toda la aleatoriedad viene de `crypto.getRandomValues()` y `crypto.subtle.generateKey()`.
-- **Rejection sampling.** Para evitar el sesgo de módulo al seleccionar caracteres de un conjunto que no divide uniformemente 2³².
+# Watch during development
+npm run watch:css
+```
 
-## Estructura del proyecto
+The compiled `assets/tailwind.css` is committed, so the site can be served as-is without a build step.
+
+## Verification
+
+To run the automated verification harness, open `http://localhost:8000/verify.html` after starting the server. The harness runs 30+ assertions against every generator and cryptographic primitive.
+
+```bash
+# Headless UI tests (DOM contracts and generators)
+npm run test:ui
+```
+
+## Security
+
+- **100% client-side.** No network request is made during generation. Verifiable in the DevTools Network tab.
+- **No storage.** Generated values are never written to `localStorage`, cookies, or any persistence mechanism. Refresh the page and they are gone.
+- **Strict CSP.** The pages use a `Content-Security-Policy` without `unsafe-inline`, removing an entire class of injection attacks (no inline scripts, no inline styles, no CDN).
+- **No `Math.random`.** All randomness comes from `crypto.getRandomValues()` and `crypto.subtle.generateKey()`.
+- **Rejection sampling.** Used to avoid modulo bias when selecting characters from a set that does not evenly divide 2³².
+
+## Project structure
 
 ```
 /
-├── index.html              # Aplicación principal
-├── verify.html             # Harness de verificación
-├── styles/
-│   ├── tokens.css          # Variables CSS (colores, tipografía, espaciado)
-│   ├── base.css            # Reset, tipografía, accesibilidad
-│   └── components.css      # Tarjetas, botones, inputs, output
+├── index.html              # Main application
+├── docs.html               # User-facing help & guide
+├── verify.html             # Verification harness
+├── tailwind.config.js      # Design tokens (Material 3 palette, type, spacing)
 ├── src/
-│   ├── main.js             # Punto de entrada, crea las 9 tarjetas
+│   ├── main.js             # Entry point; builds the 9 cards and wires the UI
+│   ├── styles.css          # Tailwind entry + @font-face + components
 │   ├── crypto/
 │   │   ├── random.js       # getRandomBytes, getRandomInt (rejection sampling)
 │   │   └── encoders.js     # encodeHex, encodeBase64, encodeBase64URL, encodeBase32
@@ -79,50 +97,53 @@ Para ejecutar el harness de verificación automatizado, abrí `http://localhost:
 │   │   ├── csrf-token.js
 │   │   └── totp-secret.js
 │   ├── data/
-│   │   └── words.js        # Wordlist EFF (starter de 100 palabras)
+│   │   └── words.js        # EFF wordlist (100-word starter)
 │   └── ui/
-│       ├── card.js         # Factoría de tarjetas de generador
-│       └── clipboard.js    # Utilidad de portapapeles con fallback
+│       ├── card.js         # Generator card factory
+│       ├── clipboard.js    # Clipboard utility with fallback
+│       └── entropy-map.js  # Live canvas of real random bytes
 └── assets/
-    └── favicon.svg
+    ├── tailwind.css        # Compiled stylesheet
+    ├── favicon.svg         # Key icon (Material Symbols glyph)
+    └── fonts/              # Self-hosted woff2 fonts
 ```
 
-## Despliegue
+## Deployment
 
-La app es completamente estática. Se puede desplegar en:
+The app is fully static. It can be deployed to:
 
-- **GitHub Pages** — Push a la rama configurada, habilitá "Enforce HTTPS".
-- **Netlify** — Arrastrá la carpeta o conectá el repo.
-- **Cloudflare Pages** — Conectá el repo, build command vacío, output directory `.`.
-- **Vercel** — Igual que Cloudflare Pages.
-- **Cualquier hosting estático** — nginx, Apache, S3 + CloudFront.
+- **GitHub Pages** — push to the configured branch and enable "Enforce HTTPS".
+- **Netlify** — drag the folder in or connect the repo.
+- **Cloudflare Pages** — connect the repo, empty build command, output directory `.`.
+- **Vercel** — same as Cloudflare Pages.
+- **Any static host** — nginx, Apache, S3 + CloudFront.
 
-Asegurate de que el hosting sirva con **HTTPS**. La app no funciona sin él.
+Make sure the host serves over **HTTPS**. The app does not work without it.
 
-## Despliegue con Docker
+## Deploying with Docker
 
-La app requiere HTTPS para la Web Crypto API. El contenedor sirve HTTP plano (puerto 8080), por lo que necesitás un proxy inverso externo con terminación TLS por delante.
+The app requires HTTPS for the Web Crypto API. The container serves plain HTTP (port 8080), so you need an external reverse proxy with TLS termination in front of it.
 
 ```bash
 docker compose build && docker compose up -d
 ```
 
-Para usar un puerto host distinto:
+To use a different host port:
 
 ```bash
 PORT=9000 docker compose up -d
 ```
 
-Verificar que el contenedor está saludable:
+Check that the container is healthy:
 
 ```bash
 docker compose ps
 ```
 
-Debería mostrar `(healthy)` después de ~35 segundos.
+It should show `(healthy)` after ~35 seconds.
 
-El contenedor sirve archivos estáticos con nginx. **No** maneja TLS ni configuración de proxy — eso queda del lado del reverse proxy que exponga HTTPS al exterior.
+The container serves static files with nginx. It does **not** handle TLS or proxy configuration — that belongs to the reverse proxy exposing HTTPS externally.
 
-## Licencia
+## License
 
 MIT
