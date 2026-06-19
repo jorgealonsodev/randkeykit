@@ -1,0 +1,52 @@
+/* ==========================================================================
+   Design Tokens
+   Central source of truth for colors, spacing, typography, and interactions.
+   ========================================================================== */
+
+:root {
+  /* ---- Colors ---- */
+  --color-bg: #f8f9fa;
+  --color-surface: #ffffff;
+  --color-text: #1a1a2e;
+  --color-text-muted: #5f6368;
+  --color-accent: #1a73e8;
+  --color-accent-hover: #1557b0;
+  --color-accent-text: #ffffff;
+  --color-error: #d93025;
+  --color-error-bg: #fce8e6;
+  --color-border: #dadce0;
+  --color-success: #1e8e3e;
+  --color-shadow: rgba(0, 0, 0, 0.08);
+
+  /* ---- Spacing scale ---- */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+  --space-32: 32px;
+
+  /* ---- Typography ---- */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", "Cascadia Code",
+    Consolas, "Liberation Mono", Menlo, monospace;
+  --font-size-sm: 0.8125rem;   /* 13px */
+  --font-size-base: 0.9375rem;  /* 15px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.5rem;       /* 24px */
+  --font-size-result: 1rem;
+  --line-height-base: 1.5;
+
+  /* ---- Radii ---- */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 1px 3px var(--color-shadow), 0 1px 2px var(--color-shadow);
+  --shadow-card-hover: 0 4px 8px var(--color-shadow);
+}
