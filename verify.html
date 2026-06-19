@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RandKeyKit — Verification Harness</title>
+  <link rel="stylesheet" href="styles/tokens.css">
+  <style>
+    body {
+      font-family: var(--font-sans);
+      max-width: 800px;
+      margin: 0 auto;
+      padding: var(--space-24);
+      background: var(--color-bg);
+      color: var(--color-text);
+    }
+    h1 { font-size: var(--font-size-xl); margin-bottom: var(--space-8); }
+    .summary { font-size: var(--font-size-base); margin-bottom: var(--space-24); }
+    .test-group {
+      margin: var(--space-24) 0;
+      padding: var(--space-16);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .test-group h2 { margin: 0 0 var(--space-12) 0; font-size: var(--font-size-lg); }
+    .test-case {
+      padding: var(--space-8) var(--space-12);
+      margin: var(--space-4) 0;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: var(--font-size-sm);
+    }
+    .pass { background: #e6f4ea; border-left: 4px solid var(--color-success); }
+    .fail { background: var(--color-error-bg); border-left: 4px solid var(--color-error); }
+    .waiting { background: #fef7e0; border-left: 4px solid #f9ab00; }
+    .result-line { margin: var(--space-4) 0; }
+    .pass-count { color: var(--color-success); font-weight: 700; }
+    .fail-count { color: var(--color-error); font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>RandKeyKit — Verification Harness</h1>
+  <p class="summary">Running automated assertions against all 9 generators and crypto primitives...</p>
+  <div id="results"><p>Loading modules...</p></div>
+
+  <script type="module">
+    import { encodeBase32, encodeHex, encodeBase64 } from "./src/crypto/encoders.js";
+    import { getRandomBytes } from "./src/crypto/random.js";
+    import { generateAPIKey } from "./src/generators/api-key.js";
+    import { generatePassword } from "./src/generators/password.js";
+    import { generatePassphrase } from "./src/generators/passphrase.js";
+    import { generateSalt } from "./src/generators/salt.js";
+    import { generateAESKey } from "./src/generators/aes-key.js";
+    import { generateHMACKey } from "./src/generators/hmac-key.js";
+    import { generateSessionToken } from "./src/generators/session-token.js";
+    import { generateCSRFToken } from "./src/generators/csrf-token.js";
+    import { generateTOTPSecret } from "./src/generators/totp-secret.js";
+
+    const results = [];
+    let passed = 0;
+    let failed = 0;
+
+    function assert(description, condition, detail = "") {
+      const ok = Boolean(condition);
+      if (ok) passed++; else failed++;
+      results.push({ description, ok, detail });
+    }
+
+    // ---- Crypto Primitives ----
+    assert("getRandomBytes(32) returns 32 bytes", getRandomBytes(32).length === 32);
+    assert("getRandomBytes(32) is Uint8Array", getRandomBytes(32) instanceof Uint8Array);
+
+    // Base32 encoding vectors
+    const fooBytes = new Uint8Array([0x66, 0x6F, 0x6F]);
+    assert('encodeBase32("foo") = MZXW6===', encodeBase32(fooBytes) === "MZXW6===");
+
+    const seqBytes = new Uint8Array([0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09,0x0A]);
+    assert("encodeBase32([0x00..0x0A]) matches vector", encodeBase32(seqBytes) === "AAAQEAYEAUDAOCAJBI======");
+
+    // Hex encoding
+    assert('encodeHex([0x66,0x6F,0x6F]) = "666f6f"', encodeHex(fooBytes) === "666f6f");
+
+    // Base64 encoding
+    const helloBytes = new Uint8Array([0x48, 0x65, 0x6c, 0x6c, 0x6f]);
+    assert('encodeBase64("Hello") = "SGVsbG8="', encodeBase64(helloBytes) === "SGVsbG8=");
+
+    // ---- API Key ----
+    const apiKey = generateAPIKey();
+    assert("API key default length = 48", apiKey.value.length === 48);
+    assert("API key is alphanumeric by default", /^[A-Za-z0-9]+$/.test(apiKey.value));
+    assert("API key entropy is positive", apiKey.entropy > 0);
+
+    const apiHex = generateAPIKey({ length: 32, format: "hex" });
+    assert("API key hex format is lowercase hex", /^[0-9a-f]{32}$/.test(apiHex.value));
+
+    const apiPrefix = generateAPIKey({ length: 32, prefix: "rk_" });
+    assert("API key prefix is prepended", apiPrefix.value.startsWith("rk_"));
+
+    // ---- Password ----
+    const pwd = generatePassword();
+    assert("Password default length = 20", pwd.value.length === 20);
+    assert("Password has uppercase", /[A-Z]/.test(pwd.value));
+    assert("Password has lowercase", /[a-z]/.test(pwd.value));
+    assert("Password has digits", /[0-9]/.test(pwd.value));
+    assert("Password has symbols", /[^A-Za-z0-9]/.test(pwd.value));
+    assert("Password entropy at 20 chars = 131 bits", pwd.entropy === 131);
+
+    const pwdAmbig = generatePassword({ excludeAmbiguous: true });
+    assert("Password exclude ambiguous removes 0,O,I,l,1", !/[0OIl1]/.test(pwdAmbig.value));
+
+    // ---- Passphrase ----
+    const pp = generatePassphrase();
+    const ppWords = pp.value.split("-");
+    assert("Passphrase default = 5 words", ppWords.length === 5);
+    assert("Passphrase words are hyphen-separated lowercase", ppWords.every(w => /^[a-z]+$/.test(w)));
+
+    const ppCap = generatePassphrase({ capitalize: true, separator: "." });
+    assert("Passphrase capitalized", ppCap.value.split(".").every(w => /^[A-Z][a-z]+$/.test(w)));
+
+    // ---- Salt ----
+    const salt = generateSalt();
+    assert("Salt default = 32 hex chars (16 bytes)", salt.value.length === 32 && /^[0-9a-f]+$/.test(salt.value));
+
+    const salt64 = generateSalt({ bytes: 32, format: "base64" });
+    assert("Salt base64 format is valid Base64", /^[A-Za-z0-9+/]+=*$/.test(salt64.value));
+
+    // ---- Session Token ----
+    const session = generateSessionToken();
+    assert("Session token default is non-empty Base64URL", session.value.length > 0 && !session.value.includes("="));
+
+    // ---- CSRF Token ----
+    const csrf = generateCSRFToken();
+    assert("CSRF token default is non-empty Base64URL", csrf.value.length > 0 && !csrf.value.includes("="));
+
+    // ---- TOTP Secret ----
+    const totp = generateTOTPSecret();
+    assert("TOTP secret = 32 base32 chars (160 bits)", totp.value.length === 32);
+    assert("TOTP secret is uppercase A-Z2-7 no padding", /^[A-Z2-7]+$/.test(totp.value));
+
+    const totp256 = generateTOTPSecret({ bits: 256 });
+    assert("TOTP 256-bit = 52 base32 chars", totp256.value.length === 52);
+
+    // ---- AES Key (async) ----
+    const aesResults = [];
+    try {
+      const aesKey = await generateAESKey();
+      aesResults.push({ ok: aesKey.value.length > 0, desc: "AES key default (256-bit) output non-empty" });
+
+      const rawAes = atob(aesKey.value);
+      aesResults.push({ ok: rawAes.length === 32, desc: "AES key length = 32 bytes (256 bits)", detail: `got ${rawAes.length} bytes` });
+
+      const aesHex = await generateAESKey({ bits: 128, format: "hex" });
+      aesResults.push({ ok: aesHex.value.length === 32, desc: "AES-128 hex = 32 hex chars (16 bytes)" });
+    } catch (e) {
+      aesResults.push({ ok: false, desc: "AES key generation", detail: e.message });
+    }
+    aesResults.forEach(r => assert(r.desc, r.ok, r.detail));
+
+    // ---- HMAC Key (async) ----
+    const hmacResults = [];
+    try {
+      const hmacKey = await generateHMACKey();
+      hmacResults.push({ ok: hmacKey.value.length > 0, desc: "HMAC key default (256-bit) output non-empty" });
+
+      const rawHmac = atob(hmacKey.value);
+      hmacResults.push({ ok: rawHmac.length === 32, desc: "HMAC key length = 32 bytes (256 bits)", detail: `got ${rawHmac.length} bytes` });
+
+      const hmacHex = await generateHMACKey({ bits: 512, format: "hex" });
+      hmacResults.push({ ok: hmacHex.value.length === 128, desc: "HMAC-512 hex = 128 hex chars (64 bytes)" });
+    } catch (e) {
+      hmacResults.push({ ok: false, desc: "HMAC key generation", detail: e.message });
+    }
+    hmacResults.forEach(r => assert(r.desc, r.ok, r.detail));
+
+    // ---- Render Results ----
+    const resultsDiv = document.getElementById("results");
+
+    const summaryHtml = `<p>
+      <span class="pass-count">${passed} passed</span>,
+      <span class="fail-count">${failed} failed</span>
+      (${passed + failed} total)
+    </p>`;
+
+    const testHtml = results.map((r, i) => {
+      const cls = r.ok ? "pass" : "fail";
+      const detail = r.detail ? `<br><small>${r.detail}</small>` : "";
+      return `<div class="test-case ${cls}">
+        <span>${r.ok ? "✓" : "✗"}</span> ${r.description}${detail}
+      </div>`;
+    }).join("");
+
+    resultsDiv.innerHTML = `
+      <div class="test-group">
+        <h2>Test Results</h2>
+        ${summaryHtml}
+        ${testHtml}
+      </div>
+      <p>${failed === 0 ? "✅ All assertions passed." : "❌ Some assertions failed."}</p>
+    `;
+  </script>
+</body>
+</html>
