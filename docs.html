@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
+  <meta name="description" content="RandKeyKit help — what each generator is for, how to use it, and how your data stays private.">
+  <title>RandKeyKit — Documentation</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="assets/tailwind.css">
+</head>
+<body class="bg-background font-body-base text-on-surface">
+
+  <!-- TopNavBar (identical to index.html) -->
+  <header class="sticky top-0 z-50 bg-surface border-b border-outline-variant shadow-sm">
+    <div class="flex justify-between items-center w-full px-margin-page py-4 max-w-container mx-auto">
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="flex h-9 w-9 items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[22px]">key</span>
+          </span>
+          <span class="font-headline-md text-headline-md font-bold text-primary">RandKeyKit</span>
+        </div>
+        <span class="hidden md:inline-flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full text-secondary font-label-caps text-label-caps">
+          <span class="material-symbols-outlined text-[14px]">verified_user</span>
+          LOCAL-ONLY ENGINE
+        </span>
+      </div>
+      <div class="hidden lg:flex items-center px-4 py-2 bg-secondary-container/30 border border-outline-variant rounded-lg text-on-secondary-container font-body-sm text-body-sm">
+        <span class="material-symbols-outlined mr-2 text-primary text-[18px]">info</span>
+        All generation happens in your browser — nothing is sent to any server.
+      </div>
+      <div></div>
+    </div>
+  </header>
+
+  <!-- App shell: sidebar + main (identical to index.html) -->
+  <div class="flex max-w-container mx-auto min-h-[calc(100vh-73px)]">
+
+    <!-- SideNavBar (identical style to index.html) -->
+    <aside class="hidden md:flex flex-col h-full w-64 bg-surface-container-low border-r border-outline-variant p-4 gap-stack-gap shrink-0 sticky top-[73px]">
+      <div class="flex flex-col gap-1">
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">grid_view</span>
+          <span class="font-label-caps text-label-caps">All Tools</span>
+        </a>
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">key</span>
+          <span class="font-label-caps text-label-caps">Cryptographic Keys</span>
+        </a>
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">toll</span>
+          <span class="font-label-caps text-label-caps">Web Tokens</span>
+        </a>
+        <a href="index.html" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="font-label-caps text-label-caps">Passcodes</span>
+        </a>
+      </div>
+      <div class="mt-auto pt-4 border-t border-outline-variant">
+        <a href="docs.html" class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold rounded-lg transition-all">
+          <span class="material-symbols-outlined">description</span>
+          <span class="font-label-caps text-label-caps">Documentation</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-margin-page min-w-0">
+
+      <!-- Page heading -->
+      <div class="mb-section-gap">
+        <h1 class="font-display-lg text-display-lg text-on-surface">Help &amp; guide</h1>
+        <p class="mt-2 text-on-surface-variant font-body-base max-w-3xl">
+          RandKeyKit creates strong, random keys, passwords, and tokens right on your device.
+          Here is what each tool is for, how to use it, and why your secrets stay private.
+        </p>
+      </div>
+
+      <div class="flex flex-col gap-gutter min-w-0">
+
+        <!-- What it is -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-3 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">bolt</span> What is RandKeyKit?
+          </h2>
+          <p class="text-on-surface-variant leading-relaxed">
+            A simple toolkit for generating the secrets you need every day — passwords, passphrases,
+            API keys, and more. Every value is created with your browser's built-in secure random
+            generator, so the results are genuinely unpredictable and safe to use.
+          </p>
+        </section>
+
+        <!-- Privacy -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">verified_user</span> Your privacy
+          </h2>
+          <ul class="space-y-3 text-on-surface-variant">
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Nothing is sent anywhere.</strong> Everything is generated on your own device. No accounts, no tracking, no servers involved.</span></li>
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Nothing is saved.</strong> Your generated values are never stored. Close or refresh the page and they are gone for good.</span></li>
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Works offline.</strong> Once the page has loaded, you can disconnect from the internet and it keeps working.</span></li>
+          </ul>
+        </section>
+
+        <!-- How to use -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">touch_app</span> How to use it
+          </h2>
+          <ol class="space-y-3 text-on-surface-variant list-none">
+            <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-body-sm font-bold">1</span><span><strong class="text-on-surface">Pick a tool.</strong> Use the sidebar categories or scroll the cards to find what you need.</span></li>
+            <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-body-sm font-bold">2</span><span><strong class="text-on-surface">Adjust the options.</strong> Set the length and format. The defaults are already secure, so you can leave them as they are.</span></li>
+            <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-body-sm font-bold">3</span><span><strong class="text-on-surface">Generate.</strong> Click <em>Generate</em> to create a fresh value. Click it again any time for a new one.</span></li>
+            <li class="flex gap-3"><span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary text-white text-body-sm font-bold">4</span><span><strong class="text-on-surface">Copy it.</strong> Use the copy button next to the result, then paste it where you need it.</span></li>
+          </ol>
+          <p class="mt-4 text-on-surface-variant flex gap-2 items-start"><span class="material-symbols-outlined text-primary text-[20px]">tips_and_updates</span><span>The <strong class="text-on-surface">Refresh All</strong> button at the top regenerates every tool at once.</span></p>
+        </section>
+
+        <!-- The tools -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">grid_view</span> What each tool is for
+          </h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-body-sm border-collapse">
+              <thead>
+                <tr class="border-b border-outline-variant text-secondary font-label-caps text-label-caps uppercase">
+                  <th class="py-3 pr-4">Tool</th>
+                  <th class="py-3">What it's for</th>
+                </tr>
+              </thead>
+              <tbody class="text-on-surface-variant">
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Password</td><td class="py-3">A strong password for any account. Use the longest length the website allows.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Passphrase</td><td class="py-3">A password made of real words — easier to read and type by hand when you have to.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">API Key</td><td class="py-3">A random key to connect an app or script to a service.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">TOTP Secret</td><td class="py-3">Sets up two-factor authentication codes in an app like Google Authenticator or Authy.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">AES Key</td><td class="py-3">A secret key used to encrypt files or data.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">HMAC Key</td><td class="py-3">A secret key used to sign data and check it hasn't been tampered with.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Salt</td><td class="py-3">A random value used when storing passwords securely.</td></tr>
+                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Session Token</td><td class="py-3">A random value that identifies a signed-in session.</td></tr>
+                <tr><td class="py-3 pr-4 font-bold text-on-surface">CSRF Token</td><td class="py-3">A random value that protects web forms from a common type of attack.</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 text-on-surface-variant text-body-sm">Not sure which one you need? For everyday logins, use <strong class="text-on-surface">Password</strong> or <strong class="text-on-surface">Passphrase</strong>. The rest are building blocks for apps and websites.</p>
+        </section>
+
+        <!-- Tips -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary">shield</span> Tips for strong secrets
+          </h2>
+          <ul class="space-y-3 text-on-surface-variant">
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Longer is stronger.</strong> When in doubt, increase the length.</span></li>
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Never reuse</strong> the same password across sites.</span></li>
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Save it in a password manager</strong> right after generating — these values are not stored here.</span></li>
+            <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]">check_circle</span><span><strong class="text-on-surface">Generate a fresh value</strong> for each new account or service.</span></li>
+          </ul>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- Footer -->
+  <footer class="bg-surface border-t border-outline-variant py-8 mt-section-gap">
+    <div class="max-w-container mx-auto flex flex-col md:flex-row justify-between items-center px-margin-page gap-4">
+      <span class="font-body-sm text-body-sm text-secondary">RandKeyKit — Local-First Cryptography</span>
+      <div class="flex gap-6">
+        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="index.html">Generators</a>
+        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="https://github.com/jorgealonsodev/randkeykit" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

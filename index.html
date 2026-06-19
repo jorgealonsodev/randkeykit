@@ -1,170 +1,200 @@
 <!DOCTYPE html>
-<html lang="en">
+<html class="light" lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
   <meta name="description" content="Cryptographic key, password, and token generator — all client-side, nothing sent to any server.">
-  <title>RandKeyKit — Secure Key Generator</title>
+  <title>RandKeyKit | Local-First Cryptography</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="assets/tailwind.css">
 </head>
-<body class="min-h-screen bg-slate-950 text-slate-100 antialiased selection:bg-primary/30 selection:text-white">
-  <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-    <div class="absolute inset-x-0 top-0 h-[36rem] bg-[radial-gradient(circle_at_top,_rgba(2,132,199,0.22),_transparent_48%),radial-gradient(circle_at_20%_20%,_rgba(16,185,129,0.15),_transparent_25%),linear-gradient(180deg,_#020617_0%,_#0f172a_48%,_#020617_100%)]"></div>
-    <div class="absolute inset-0 bg-[linear-gradient(rgba(148,163,184,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(148,163,184,0.05)_1px,transparent_1px)] bg-[size:32px_32px] opacity-20"></div>
-  </div>
+<body class="bg-background font-body-base text-on-surface">
 
-  <header class="sticky top-0 z-40 border-b border-white/10 bg-slate-950/85 backdrop-blur-xl supports-[backdrop-filter]:bg-slate-950/75">
-    <div class="mx-auto flex max-w-[1480px] items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
-      <div class="min-w-0">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-cyan-400/30 bg-cyan-400/10 shadow-[0_0_40px_rgba(34,211,238,0.12)]">
-            <span class="material-symbols-outlined text-[22px] text-cyan-200">key</span>
-          </div>
-          <div>
-            <p class="font-display text-xl font-semibold tracking-tight text-white">RandKeyKit</p>
-            <p class="text-sm text-slate-400">Secure local-first secret generation</p>
-          </div>
+  <!-- TopNavBar -->
+  <header class="sticky top-0 z-50 bg-surface border-b border-outline-variant shadow-sm">
+    <div class="flex justify-between items-center w-full px-margin-page py-4 max-w-container mx-auto">
+      <!-- Left: Logo + badge -->
+      <div class="flex items-center gap-4">
+        <div class="flex items-center gap-2">
+          <span class="flex h-9 w-9 items-center justify-center text-primary">
+            <span class="material-symbols-outlined text-[22px]">key</span>
+          </span>
+          <span class="font-headline-md text-headline-md font-bold text-primary">RandKeyKit</span>
         </div>
-      </div>
-
-      <div class="hidden items-center gap-3 md:flex">
-        <span class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
-          <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
-          Local only
+        <span class="hidden md:inline-flex items-center gap-2 px-3 py-1 bg-surface-container rounded-full text-secondary font-label-caps text-label-caps">
+          <span class="material-symbols-outlined text-[14px]">verified_user</span>
+          LOCAL-ONLY ENGINE
         </span>
-        <div class="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs text-slate-300">
-          All generation happens in your browser — nothing is sent to any server.
-        </div>
       </div>
+      <!-- Center: Info pill -->
+      <div class="hidden lg:flex items-center px-4 py-2 bg-secondary-container/30 border border-outline-variant rounded-lg text-on-secondary-container font-body-sm text-body-sm">
+        <span class="material-symbols-outlined mr-2 text-primary text-[18px]">info</span>
+        All generation happens in your browser — nothing is sent to any server.
+      </div>
+      <!-- Right: intentionally empty — no fake avatar/settings buttons -->
+      <div></div>
     </div>
   </header>
 
-  <div class="mx-auto flex max-w-[1480px] gap-8 px-4 py-6 sm:px-6 lg:px-8">
-    <aside class="hidden w-64 shrink-0 lg:block">
-      <div class="sticky top-28 space-y-6">
-        <div class="rounded-[28px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">Categories</p>
-          <div class="mt-4 space-y-3">
-            <button type="button" class="flex w-full items-center gap-3 rounded-2xl border border-cyan-400/25 bg-cyan-400/10 px-4 py-3 text-left text-sm font-medium text-cyan-100">
-              <span class="material-symbols-outlined text-lg">api</span>
-              Access &amp; identity
-            </button>
-            <button type="button" class="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.05]">
-              <span class="material-symbols-outlined text-lg text-slate-400">password</span>
-              Credentials
-            </button>
-            <button type="button" class="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.05]">
-              <span class="material-symbols-outlined text-lg text-slate-400">encrypted</span>
-              Encryption keys
-            </button>
-            <button type="button" class="flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-left text-sm font-medium text-slate-300 transition hover:border-white/20 hover:bg-white/[0.05]">
-              <span class="material-symbols-outlined text-lg text-slate-400">shield</span>
-              Session defense
-            </button>
-          </div>
-        </div>
+  <!-- App shell: sidebar + main -->
+  <div class="flex max-w-container mx-auto min-h-[calc(100vh-72px)]">
 
-        <div class="rounded-[28px] border border-white/10 bg-gradient-to-br from-white/[0.05] to-white/[0.02] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.35)]">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">Security note</p>
-          <p class="mt-3 text-sm leading-6 text-slate-300">No storage, no trackers, no network calls after load. This shell is intentionally static and CSP-restricted.</p>
-        </div>
+    <!-- SideNavBar: category filters for the generator grid -->
+    <aside id="sidebar" class="hidden md:flex flex-col h-full w-64 bg-surface-container-low border-r border-outline-variant p-4 gap-stack-gap shrink-0 sticky top-[73px]">
+      <div class="flex flex-col gap-1">
+        <button type="button" data-filter="all" class="flex items-center gap-3 px-4 py-3 bg-primary-container text-on-primary-container font-bold rounded-lg transition-all">
+          <span class="material-symbols-outlined">grid_view</span>
+          <span class="font-label-caps text-label-caps">All Tools</span>
+        </button>
+        <button type="button" data-filter="keys" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">key</span>
+          <span class="font-label-caps text-label-caps">Cryptographic Keys</span>
+        </button>
+        <button type="button" data-filter="tokens" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">toll</span>
+          <span class="font-label-caps text-label-caps">Web Tokens</span>
+        </button>
+        <button type="button" data-filter="passcodes" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high rounded-lg transition-all">
+          <span class="material-symbols-outlined">lock</span>
+          <span class="font-label-caps text-label-caps">Passcodes</span>
+        </button>
+      </div>
+      <div class="mt-auto pt-4 border-t border-outline-variant">
+        <a href="docs.html" class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high w-full rounded-lg transition-all">
+          <span class="material-symbols-outlined">description</span>
+          <span class="font-label-caps text-label-caps">Documentation</span>
+        </a>
       </div>
     </aside>
 
-    <main class="min-w-0 flex-1">
-      <section class="rounded-[32px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_32px_120px_rgba(2,6,23,0.4)] backdrop-blur sm:p-6 xl:p-8">
-        <div class="flex flex-col gap-5 border-b border-white/10 pb-6 sm:flex-row sm:items-end sm:justify-between">
-          <div class="max-w-3xl">
-            <p class="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200/80">Offline cryptographic toolkit</p>
-            <h1 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white sm:text-4xl xl:text-5xl">Generate production-ready secrets without leaving your machine.</h1>
-            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300 sm:text-base">Nine local generators, live entropy feedback, and secure defaults for passwords, tokens, salts, and key material.</p>
-          </div>
+    <!-- Main Content -->
+    <main class="flex-1 p-margin-page">
 
-          <div class="flex flex-wrap items-center gap-3">
-            <div class="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs text-slate-300">
-              <span class="block text-[11px] uppercase tracking-[0.25em] text-slate-500">Execution mode</span>
-              <span class="mt-1 block font-medium text-white">Web Crypto + local assets</span>
-            </div>
-            <button id="refresh-all" type="button" class="inline-flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/20 bg-cyan-400/10 px-5 py-3 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300/40 hover:bg-cyan-300/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/50 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950">
-              <span class="material-symbols-outlined text-lg">autorenew</span>
-              Refresh All
+      <!-- Insecure context banner -->
+      <div id="secure-context-banner" class="hidden" role="alert"></div>
+
+      <!-- Page heading row -->
+      <div class="mb-section-gap flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 class="font-display-lg text-display-lg text-on-surface">Generator Suite</h1>
+          <p class="text-on-surface-variant font-body-base">Generate cryptographically secure keys and passwords locally.</p>
+        </div>
+        <button id="refresh-all" type="button" class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-sm hover:shadow-md transition-all active:scale-95">
+          <span class="material-symbols-outlined">refresh</span>
+          Refresh All
+        </button>
+      </div>
+
+      <!-- Generator cards grid (JS-injected) -->
+      <div id="app" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter" aria-live="polite"></div>
+
+      <!-- Dashboard row -->
+      <div class="mt-section-gap grid grid-cols-1 lg:grid-cols-12 gap-gutter">
+
+        <!-- Entropy Density Map (col-span-8) -->
+        <div class="lg:col-span-8 bg-white border border-outline-variant rounded-2xl overflow-hidden shadow-sm flex flex-col">
+          <div class="p-6 border-b border-outline-variant bg-surface-container-low flex justify-between items-center">
+            <h2 class="font-headline-md text-headline-md">Entropy Density Map</h2>
+            <span class="text-body-sm text-secondary">Live bytes from <code>crypto.getRandomValues()</code></span>
+          </div>
+          <div class="relative flex-1 min-h-[16rem] bg-slate-900">
+            <canvas id="entropy-canvas" class="block w-full h-full"></canvas>
+            <button id="entropy-refresh" type="button" aria-label="Resample random bytes" class="absolute top-3 right-3 flex items-center justify-center h-9 w-9 rounded-lg bg-white/10 text-white hover:bg-white/20 transition-colors active:scale-95">
+              <span class="material-symbols-outlined text-[20px]">refresh</span>
             </button>
+            <div class="absolute bottom-4 left-4 flex gap-4">
+              <div class="flex items-center gap-2 text-white/80 font-label-caps text-label-caps">
+                <div class="w-2 h-2 rounded-full bg-primary"></div> LOW BYTE
+              </div>
+              <div class="flex items-center gap-2 text-white/80 font-label-caps text-label-caps">
+                <div class="w-2 h-2 rounded-full bg-tertiary"></div> HIGH BYTE
+              </div>
+            </div>
           </div>
         </div>
 
-        <div id="secure-context-banner" class="mt-6 hidden"></div>
+        <!-- Right column (col-span-4): Secure Local Engine + System Resources -->
+        <div class="lg:col-span-4 space-y-gutter">
 
-        <div id="app" class="mt-8 grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-3" aria-live="polite"></div>
-      </section>
-
-      <section class="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[1.35fr_0.9fr_0.75fr]">
-        <article class="overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.04] p-5 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur sm:p-6">
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">Entropy Density Map</p>
-              <h2 class="mt-2 font-display text-2xl font-semibold text-white">Visualize the shape of local randomness</h2>
+          <!-- Secure Local Engine card (honest copy) -->
+          <div class="bg-primary text-white rounded-2xl p-6 shadow-md relative overflow-hidden">
+            <div class="relative z-10">
+              <h3 class="font-headline-md text-headline-md mb-2">Secure Local Engine</h3>
+              <p class="text-on-primary-container font-body-sm mb-4">Powered by <code>crypto.getRandomValues()</code> — the browser's CSPRNG. No keys leave your device. Strict CSP enforced.</p>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues" target="_blank" rel="noopener noreferrer" class="inline-block px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-colors text-body-sm">Learn More</a>
             </div>
-            <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-300">
-              <span class="material-symbols-outlined text-base text-emerald-300">monitoring</span>
-              Static SVG
-            </span>
-          </div>
-          <img src="assets/entropy-map.svg" alt="Abstract entropy visualization in blue and green tones" class="mt-5 h-72 w-full rounded-[24px] border border-white/10 object-cover object-center">
-          <p class="mt-4 text-sm leading-7 text-slate-300">A local-only illustration to reinforce that entropy is created in-browser, not fetched from a third-party service.</p>
-        </article>
-
-        <article class="rounded-[28px] border border-emerald-400/15 bg-[linear-gradient(180deg,rgba(16,185,129,0.12),rgba(15,23,42,0.96))] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)]">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-emerald-300/20 bg-emerald-300/10">
-            <span class="material-symbols-outlined text-[22px] text-emerald-200">memory</span>
-          </div>
-          <p class="mt-6 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100/80">Secure Local Engine</p>
-          <h2 class="mt-3 font-display text-3xl font-semibold tracking-tight text-white">Zero-runtime-dependency secret generation.</h2>
-          <p class="mt-4 text-sm leading-7 text-emerald-50/85">Bundled wordlist, local fonts, strict CSP, and Web Crypto primitives only. Designed for environments that value predictability over magic.</p>
-          <div class="mt-6 grid grid-cols-2 gap-3 text-sm text-emerald-50">
-            <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-emerald-100/70">CSP</p>
-              <p class="mt-2 font-semibold">Self-only</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-emerald-100/70">Runtime</p>
-              <p class="mt-2 font-semibold">No CDN</p>
+            <div class="absolute -right-10 -bottom-10 opacity-20 transform rotate-12">
+              <span class="material-symbols-outlined text-[160px]">lock</span>
             </div>
           </div>
-        </article>
 
-        <article class="rounded-[28px] border border-white/10 bg-white/[0.04] p-6 shadow-[0_24px_80px_rgba(2,6,23,0.35)] backdrop-blur">
-          <p class="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400">System Resources</p>
-          <h2 class="mt-3 font-display text-2xl font-semibold text-white">Static dashboard</h2>
-          <div class="mt-6 space-y-4">
-            <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Generators</p>
-              <p class="mt-2 text-3xl font-semibold text-white">9</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Runtime dependencies</p>
-              <p class="mt-2 text-3xl font-semibold text-white">0</p>
-            </div>
-            <div class="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
-              <p class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Clipboard fallback</p>
-              <p class="mt-2 text-lg font-semibold text-white">Enabled</p>
+          <!-- System Resources (honest content) -->
+          <div class="bg-white border border-outline-variant rounded-2xl p-6 shadow-sm">
+            <h3 class="font-label-caps text-label-caps text-secondary mb-4 uppercase">System Resources</h3>
+            <div class="space-y-4">
+              <div>
+                <div class="flex justify-between text-body-sm mb-1">
+                  <span>Secure context</span>
+                  <span id="secure-ctx-label" class="font-bold text-tertiary">Checking…</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full">
+                  <div id="secure-ctx-bar" class="h-full w-0 bg-tertiary rounded-full transition-all"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-body-sm mb-1">
+                  <span>Generators available</span>
+                  <span class="font-bold text-primary">9</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full">
+                  <div class="w-full h-full bg-primary rounded-full"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-body-sm mb-1">
+                  <span>Runtime dependencies</span>
+                  <span class="font-bold text-on-surface">0</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full">
+                  <div class="w-0 h-full bg-outline rounded-full"></div>
+                </div>
+              </div>
+              <div>
+                <div class="flex justify-between text-body-sm mb-1">
+                  <span>Clipboard fallback</span>
+                  <span class="font-bold text-on-surface">Enabled</span>
+                </div>
+                <div class="w-full h-1.5 bg-slate-100 rounded-full">
+                  <div class="w-full h-full bg-secondary rounded-full"></div>
+                </div>
+              </div>
             </div>
           </div>
-        </article>
-      </section>
 
-      <footer class="pb-6 pt-6 text-sm text-slate-400">
-        <div class="flex flex-col gap-2 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
-          <p>RandKeyKit — 100% client-side. No tracking, no storage, no external services.</p>
-          <p>Use HTTPS or localhost for Web Crypto support.</p>
         </div>
-      </footer>
+      </div>
+
     </main>
   </div>
 
-  <div id="toast" class="pointer-events-none fixed bottom-5 left-1/2 z-50 w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 translate-y-6 rounded-2xl border border-emerald-300/20 bg-slate-900/95 px-4 py-3 text-sm font-medium text-emerald-100 opacity-0 shadow-[0_20px_60px_rgba(2,6,23,0.45)] transition-all duration-200" role="status" aria-live="polite" aria-atomic="true"></div>
+  <!-- Footer -->
+  <footer class="bg-surface border-t border-outline-variant py-8 mt-section-gap">
+    <div class="max-w-container mx-auto flex flex-col md:flex-row justify-between items-center px-margin-page gap-4">
+      <span class="font-body-sm text-body-sm text-secondary">© RandKeyKit — Local-First Cryptography</span>
+      <div class="flex gap-6">
+        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="docs.html">Documentation</a>
+        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="https://github.com/jorgealonsodev/randkeykit" target="_blank" rel="noopener noreferrer">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast (initialized with opacity-0 translate-y-6 per test contract) -->
+  <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-on-surface text-white px-6 py-3 rounded-full shadow-lg font-body-base text-body-sm flex items-center gap-2 opacity-0 translate-y-6 pointer-events-none transition-all duration-200" role="status" aria-live="polite" aria-atomic="true">
+    Key copied to clipboard
+  </div>
 
   <script type="module" src="src/main.js"></script>
+
 </body>
 </html>

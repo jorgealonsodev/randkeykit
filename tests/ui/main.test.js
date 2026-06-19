@@ -9,6 +9,7 @@ import {
   createToastController,
   GENERATE_PLACEHOLDER,
   wireRefreshAll,
+  wireSidebarFilters,
 } from "../../src/main.js";
 
 function installDom(html = "<!doctype html><html><body></body></html>") {
@@ -293,6 +294,53 @@ test("boot renders nine cards and wires refresh-all against the real DOM shell",
     assert.ok(outputs.some((output) => output.textContent !== GENERATE_PLACEHOLDER));
   } finally {
     restoreCrypto();
+    restoreDom();
+  }
+});
+
+test("sidebar filter shows only matching cards and toggles the active button", () => {
+  const restoreDom = installDom(`<!doctype html><html><body>
+    <aside id="sidebar">
+      <button type="button" data-filter="all" class="bg-primary-container text-on-primary-container font-bold">All</button>
+      <button type="button" data-filter="keys" class="text-secondary hover:bg-surface-container-high">Keys</button>
+    </aside>
+  </body></html>`);
+
+  try {
+    const sidebar = document.getElementById("sidebar");
+    const makeCard = (category) => {
+      const card = document.createElement("section");
+      card.dataset.category = category;
+      return card;
+    };
+    const cards = [makeCard("keys"), makeCard("tokens"), makeCard("passcodes")];
+
+    wireSidebarFilters({ container: sidebar, cards });
+
+    const [allButton, keysButton] = [...sidebar.querySelectorAll("[data-filter]")];
+
+    keysButton.click();
+    assert.equal(cards[0].style.display, "");
+    assert.equal(cards[1].style.display, "none");
+    assert.equal(cards[2].style.display, "none");
+    assert.equal(cards[0].hidden, false);
+    assert.equal(cards[1].hidden, true);
+    assert.equal(cards[2].hidden, true);
+    assert.equal(keysButton.classList.contains("bg-primary-container"), true);
+    assert.equal(keysButton.classList.contains("font-bold"), true);
+    assert.equal(allButton.classList.contains("bg-primary-container"), false);
+    assert.equal(allButton.classList.contains("text-secondary"), true);
+
+    allButton.click();
+    assert.equal(cards[0].style.display, "");
+    assert.equal(cards[1].style.display, "");
+    assert.equal(cards[2].style.display, "");
+    assert.equal(cards[0].hidden, false);
+    assert.equal(cards[1].hidden, false);
+    assert.equal(cards[2].hidden, false);
+    assert.equal(allButton.classList.contains("bg-primary-container"), true);
+    assert.equal(keysButton.classList.contains("text-secondary"), true);
+  } finally {
     restoreDom();
   }
 });
