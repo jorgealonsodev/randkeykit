@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; img-src 'self' data:">
+  <meta name="description" content="Cryptographic key, password, and token generator — all client-side, nothing sent to any server.">
+  <title>RandKeyKit — Secure Key Generator</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/base.css">
+  <link rel="stylesheet" href="styles/components.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>RandKeyKit</h1>
+    <p class="app-subtitle">Secure cryptographic key &amp; token generator</p>
+    <div class="security-notice" role="alert">
+      <svg class="notice-icon" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true">
+        <path d="M8 1L1 14h14L8 1zm0 5v3M8 12h0" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>All generation happens in your browser — nothing is sent to any server.</span>
+    </div>
+  </header>
+  <main id="app" class="card-grid">
+    <!-- Generator cards are created dynamically by src/main.js -->
+  </main>
+  <footer class="app-footer">
+    <p>RandKeyKit — 100% client-side. No tracking, no storage, no network requests after page load.</p>
+  </footer>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
