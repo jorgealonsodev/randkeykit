@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP MUST be first in <head>, before any <link> or <script> that loads assets -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EtJTLr9QAr3VdQoFLr6qISrJimm5CkdI9FsKQ9Uoe5Q='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RandKeyKit — Local-First Cryptographic Key Generator</title>
   <meta name="description" content="Generate cryptographic keys, passwords, and tokens using the Web Crypto API. Everything runs locally in your browser — nothing is ever sent to any server.">
@@ -30,6 +30,41 @@
   <link rel="preload" as="style" href="assets/tailwind.css">
   <link rel="preload" as="font" type="font/woff2" href="assets/fonts/Geist-Variable.woff2" crossorigin>
   <link rel="stylesheet" href="assets/tailwind.css">
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "name": "RandKeyKit",
+      "url": "https://randkeykit.xdev.es/",
+      "description": "Free cryptographic key, password, and token generator."
+    },
+    {
+      "@type": "SoftwareApplication",
+      "name": "RandKeyKit",
+      "applicationCategory": "SecurityApplication",
+      "operatingSystem": "Any",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": [
+        "API Key Generator",
+        "Password Generator",
+        "Passphrase Generator",
+        "Salt Generator",
+        "AES Key Generator",
+        "HMAC Key Generator",
+        "Session Token Generator",
+        "CSRF Token Generator",
+        "TOTP Secret Generator"
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body class="bg-background font-body-base text-on-surface">
 
