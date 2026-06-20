@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://randkeykit.xdev.es/sitemap.xml
