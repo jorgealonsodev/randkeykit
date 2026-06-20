@@ -162,8 +162,8 @@ export function updateSecureContextStatus(secure) {
   const bar = document.getElementById("secure-ctx-bar");
   if (!label || !bar) return;
 
-  bar.classList.remove("w-0");
-  bar.classList.add("w-full");
+  // Composited fill animation: reveal via transform (scaleX) instead of width.
+  bar.classList.remove("scale-x-0");
 
   if (secure) {
     label.textContent = "Active";

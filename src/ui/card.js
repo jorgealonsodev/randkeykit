@@ -314,7 +314,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   iconTile.className = "w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary";
   iconTile.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${config.icon || "key"}</span>`;
 
-  const title = document.createElement("h3");
+  const title = document.createElement("h2");
   title.id = `${config.id}-title`;
   title.className = "font-headline-md text-headline-md";
   title.textContent = config.title;

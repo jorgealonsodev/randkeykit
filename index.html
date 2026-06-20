@@ -264,7 +264,7 @@
       </div>
 
       <!-- Generator cards grid (JS-injected) -->
-      <div id="app" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter" aria-live="polite"></div>
+      <div id="app" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter min-h-[1400px]" aria-live="polite"></div>
 
       <!-- Auto-clear clipboard config -->
       <div class="mt-section-gap flex items-center gap-4">
@@ -327,7 +327,7 @@
             <div class="relative z-10">
               <h3 class="font-headline-md text-headline-md mb-2">Secure Local Engine</h3>
               <p class="text-on-primary-container font-body-sm mb-4">Powered by <code>crypto.getRandomValues()</code> — the browser's CSPRNG. No keys leave your device. Strict CSP enforced.</p>
-              <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues" target="_blank" rel="noopener noreferrer" class="inline-block px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-colors text-body-sm">Learn More</a>
+              <a href="https://developer.mozilla.org/en-US/docs/Web/API/Crypto/getRandomValues" target="_blank" rel="noopener noreferrer" class="inline-block px-4 py-2 bg-white/20 hover:bg-white/30 rounded-lg font-bold transition-colors text-body-sm">Learn how the Web Crypto CSPRNG works</a>
             </div>
             <div class="absolute -right-10 -bottom-10 opacity-20 transform rotate-12">
               <span class="material-symbols-outlined text-[160px]" aria-hidden="true">lock</span>
@@ -344,7 +344,7 @@
                   <span id="secure-ctx-label" class="font-bold text-tertiary">Checking…</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full">
-                  <div id="secure-ctx-bar" class="h-full w-0 bg-tertiary rounded-full transition-all"></div>
+                  <div id="secure-ctx-bar" class="h-full w-full origin-left scale-x-0 bg-tertiary rounded-full transition-transform"></div>
                 </div>
               </div>
               <div>
