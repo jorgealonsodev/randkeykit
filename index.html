@@ -240,11 +240,24 @@
 
   <!-- Footer -->
   <footer class="bg-surface border-t border-outline-variant py-8 mt-section-gap">
-    <div class="max-w-container mx-auto flex flex-col md:flex-row justify-between items-center px-margin-page gap-4">
-      <span class="font-body-sm text-body-sm text-secondary">© RandKeyKit — Local-First Cryptography</span>
-      <div class="flex gap-6">
-        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="docs.html">Documentation</a>
-        <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="https://github.com/jorgealonsodev/randkeykit" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <div class="max-w-container mx-auto px-margin-page space-y-6">
+      <nav aria-label="Generators" class="flex flex-wrap justify-center gap-x-6 gap-y-2">
+        <a href="#api-key" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">API Key</a>
+        <a href="#password" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Password</a>
+        <a href="#passphrase" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Passphrase</a>
+        <a href="#salt" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Salt</a>
+        <a href="#aes-key" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">AES Key</a>
+        <a href="#hmac-key" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">HMAC Key</a>
+        <a href="#session-token" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Session Token</a>
+        <a href="#csrf-token" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">CSRF Token</a>
+        <a href="#totp-secret" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">TOTP Secret</a>
+      </nav>
+      <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-outline-variant">
+        <span class="font-body-sm text-body-sm text-secondary">&copy; RandKeyKit — Local-First Cryptography</span>
+        <div class="flex gap-6">
+          <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="docs.html">Documentation</a>
+          <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="https://github.com/jorgealonsodev/randkeykit" target="_blank" rel="noopener noreferrer">GitHub</a>
+        </div>
       </div>
     </div>
   </footer>
