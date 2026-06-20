@@ -193,8 +193,8 @@ export function wireSidebarFilters({ container, cards }) {
   function setActiveButton(activeButton) {
     buttons.forEach((button) => {
       const isActive = button === activeButton;
-      button.classList.toggle("bg-primary-container", isActive);
-      button.classList.toggle("text-on-primary-container", isActive);
+      button.classList.toggle("bg-primary", isActive);
+      button.classList.toggle("text-white", isActive);
       button.classList.toggle("font-bold", isActive);
       button.classList.toggle("text-secondary", !isActive);
       button.classList.toggle("hover:bg-surface-container-high", !isActive);

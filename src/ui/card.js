@@ -400,7 +400,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   resultOutput.setAttribute("aria-live", "polite");
 
   const outputRegion = document.createElement("div");
-  outputRegion.className = "relative";
+  outputRegion.className = "relative mt-auto";
 
   const structuredOutputs = document.createElement("div");
   structuredOutputs.className = "mb-4 space-y-3";
@@ -561,7 +561,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   exportMenu.append(exportTxtButton, exportCsvButton, exportEnvButton);
   exportWrapper.append(exportButton, exportMenu);
 
-  actions.className = "flex flex-wrap gap-2 mt-auto";
+  actions.className = "flex flex-wrap gap-2";
   actions.append(generateButton, copyButton, exportWrapper);
   card.appendChild(actions);
 

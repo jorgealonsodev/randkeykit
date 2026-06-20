@@ -414,7 +414,7 @@ test("wireEd25519Availability disables the card when unsupported", async () => {
 test("sidebar filter shows only matching cards and toggles the active button", () => {
   const restoreDom = installDom(`<!doctype html><html><body>
     <aside id="sidebar">
-      <button type="button" data-filter="all" class="bg-primary-container text-on-primary-container font-bold">All</button>
+      <button type="button" data-filter="all" class="bg-primary text-white font-bold">All</button>
       <button type="button" data-filter="keys" class="text-secondary hover:bg-surface-container-high">Keys</button>
     </aside>
   </body></html>`);
@@ -439,9 +439,9 @@ test("sidebar filter shows only matching cards and toggles the active button", (
     assert.equal(cards[0].hidden, false);
     assert.equal(cards[1].hidden, true);
     assert.equal(cards[2].hidden, true);
-    assert.equal(keysButton.classList.contains("bg-primary-container"), true);
+    assert.equal(keysButton.classList.contains("bg-primary"), true);
     assert.equal(keysButton.classList.contains("font-bold"), true);
-    assert.equal(allButton.classList.contains("bg-primary-container"), false);
+    assert.equal(allButton.classList.contains("bg-primary"), false);
     assert.equal(allButton.classList.contains("text-secondary"), true);
 
     allButton.click();
@@ -451,7 +451,7 @@ test("sidebar filter shows only matching cards and toggles the active button", (
     assert.equal(cards[0].hidden, false);
     assert.equal(cards[1].hidden, false);
     assert.equal(cards[2].hidden, false);
-    assert.equal(allButton.classList.contains("bg-primary-container"), true);
+    assert.equal(allButton.classList.contains("bg-primary"), true);
     assert.equal(keysButton.classList.contains("text-secondary"), true);
   } finally {
     restoreDom();
