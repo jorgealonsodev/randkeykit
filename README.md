@@ -97,6 +97,54 @@ Before going public:
 - [ ] The page loads and the secure-context banner is **not** shown
 - [ ] Generating a value works (DevTools shows no network calls)
 
+## SEO and Submitting to Search Engines
+
+RandKeyKit includes everything search engines need to discover and rank the page:
+
+| Asset | Location | Purpose |
+|-------|----------|---------|
+| `robots.txt` | `/robots.txt` | Allows all crawlers and points to the sitemap |
+| `sitemap.xml` | `/sitemap.xml` | Lists the index page with `lastmod`, `changefreq`, and `priority` |
+| `404.html` | `/404.html` | Styled error page with a link back to `/` |
+| `manifest.webmanifest` | `/manifest.webmanifest` | PWA manifest for installable web app experience |
+| JSON-LD inline | `<head>` of `index.html` | Structured data (`WebSite` + `SoftwareApplication`) for rich results |
+| OG meta tags | `<head>` of `index.html` | Open Graph and Twitter Card tags for social previews |
+
+### Submitting to Google Search Console
+
+1. Go to [Google Search Console](https://search.google.com/search-console) and add `https://randkeykit.xdev.es/` as a new property.
+2. Verify ownership using the recommended method (DNS TXT record, HTML file upload, or Google Analytics).
+3. Once verified, go to **Sitemaps** in the sidebar and submit `https://randkeykit.xdev.es/sitemap.xml`.
+4. Use the **URL Inspection** tool to request indexing for `https://randkeykit.xdev.es/`.
+
+### Validating Structured Data
+
+Copy the full URL (`https://randkeykit.xdev.es/`) and paste it into:
+
+- [Google Rich Results Test](https://search.google.com/test/rich-results) — confirms `WebSite` and `SoftwareApplication` are detected
+- [Schema.org Validator](https://validator.schema.org/) — checks JSON-LD syntax and schema compliance
+
+### Updating the Sitemap Date
+
+The `lastmod` field in `sitemap.xml` tracks the last significant content update. To update it:
+
+1. Edit `sitemap.xml` and change the `<lastmod>` value to the current date (`YYYY-MM-DD`).
+2. Optionally, regenerate the OG image and icons with `node scripts/generate-og-images.mjs`.
+3. Commit and redeploy.
+
+No build step is needed for SEO changes — all assets are static.
+
+### Manual Lighthouse Audit
+
+To run a Lighthouse SEO audit locally:
+
+1. Start the container: `docker compose up -d`
+2. Open Chrome DevTools → **Lighthouse** tab
+3. Select **SEO** category and run the audit on `http://localhost:8080`
+4. The target score is ≥ 90
+
+For automated CI checks, see `openspec/changes/randkeykit-seo/tasks.md` task 6.1 (deferred to a follow-up PR).
+
 ## License
 
 MIT
