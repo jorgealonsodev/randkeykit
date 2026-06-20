@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP MUST be first in <head>, before any <link> or <script> that loads assets -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G92DotoRfuw61aAKA9rnfcTDaGqQBix6FWlruJndYxM='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G92DotoRfuw61aAKA9rnfcTDaGqQBix6FWlruJndYxM=' 'sha256-4YZsZdt5UHOZzRR7SqziK3RunK4dz4aAMeKSW+kNFAU=' 'sha256-d8rgrM4XJFqoLT8bG7cYMu30HXJ0EpyTVIIiG4Bo7bE='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RandKeyKit — Documentation</title>
-  <meta name="description" content="Learn how to use each RandKeyKit generator, how secrets are produced locally in your browser, and why your data never leaves your device.">
+  <title>RandKeyKit Docs — Passwords, API Keys, JWT, TOTP &amp; Crypto Keys, Offline</title>
+  <meta name="description" content="Learn how RandKeyKit generates passwords, passphrases, API keys, JWT secrets, TOTP codes, AES/RSA/Ed25519 keys, and more — all locally in your browser, fully offline.">
   <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
   <meta name="theme-color" content="#2563eb">
   <link rel="canonical" href="https://randkeykit.xdev.es/docs.html">
   <meta property="og:type" content="article">
   <meta property="og:site_name" content="RandKeyKit">
-  <meta property="og:title" content="RandKeyKit — Documentation">
-  <meta property="og:description" content="Learn how to use each RandKeyKit generator, how secrets are produced locally in your browser, and why your data never leaves your device.">
+  <meta property="og:title" content="RandKeyKit Docs — Passwords, API Keys, JWT, TOTP &amp; Crypto Keys, Offline">
+  <meta property="og:description" content="Learn how RandKeyKit generates passwords, passphrases, API keys, JWT secrets, TOTP codes, AES/RSA/Ed25519 keys, and more — all locally in your browser, fully offline.">
   <meta property="og:url" content="https://randkeykit.xdev.es/docs.html">
   <meta property="og:image" content="https://randkeykit.xdev.es/assets/og-image.png">
   <meta property="og:image:width" content="1200">
@@ -21,8 +21,8 @@
   <meta property="og:image:alt" content="RandKeyKit Documentation — Learn how to use each tool, securely and locally.">
   <meta property="og:locale" content="en_US">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="RandKeyKit — Documentation">
-  <meta name="twitter:description" content="Learn how to use each RandKeyKit generator, how secrets are produced locally in your browser, and why your data never leaves your device.">
+  <meta name="twitter:title" content="RandKeyKit Docs — Passwords, API Keys, JWT, TOTP &amp; Crypto Keys, Offline">
+  <meta name="twitter:description" content="Learn how RandKeyKit generates passwords, passphrases, API keys, JWT secrets, TOTP codes, AES/RSA/Ed25519 keys, and more — all locally in your browser, fully offline.">
   <meta name="twitter:image" content="https://randkeykit.xdev.es/assets/og-image.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -50,6 +50,114 @@
   "dateModified": "2026-06-20",
   "mainEntityOfPage": "https://randkeykit.xdev.es/docs.html",
   "inLanguage": "en"
+}
+</script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is my data sent to a server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No — everything runs in your browser. No network requests are made after the page loads. All generation uses the browser's built-in Web Crypto API."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are the generated values cryptographically secure?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. RandKeyKit uses crypto.getRandomValues, the browser's CSPRNG (Cryptographically Secure Pseudo-Random Number Generator), for all output."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it work offline?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — after the first visit, a service worker caches the app shell. You can open it with no internet connection and it works exactly the same."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are generated values stored anywhere?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Values only exist in memory while the page is open. Closing or reloading the tab clears everything — nothing is written to localStorage, IndexedDB, or cookies."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I generate many values at once?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Use the COUNT control to generate up to 100 values in a single click. All of them stack in the output area and can be exported together."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I export the results?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Click the Export menu and choose TXT (one value per line), CSV (with headers), or ENV (KEY=value format). The file is assembled locally and downloaded directly — no upload."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which password length should I use?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "At least 12 characters for personal accounts, 16+ for anything sensitive. The strength badge shows the estimated crack time, so you can see the difference immediately."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a TOTP secret for?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A TOTP secret seeds a time-based one-time password app like Google Authenticator or Authy. The server and the app share the same secret, and both derive the same 6-digit code every 30 seconds."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is the difference between a Password and a Passphrase?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A Password mixes letters, digits, and symbols — high entropy, hard to memorize. A Passphrase is several random words joined together — slightly lower character entropy but much easier to remember and type correctly."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I scan a QR code to set up 2FA?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes — for the TOTP Secret generator, a Show QR button renders a QR code that encodes a standard otpauth:// URI. Scan it with Google Authenticator, Authy, or any compatible app."
+      }
+    }
+  ]
+}
+</script>
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://randkeykit.xdev.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Documentation",
+      "item": "https://randkeykit.xdev.es/docs.html"
+    }
+  ]
 }
 </script>
 </head>
@@ -135,6 +243,7 @@
             A simple toolkit for generating the secrets you need every day — passwords, passphrases,
             API keys, and more. Every value is created with your browser's built-in secure random
             generator, so the results are genuinely unpredictable and safe to use.
+            <a href="/" class="text-primary underline hover:text-on-surface transition-colors">Open the generator</a> to get started.
           </p>
         </section>
 
@@ -164,33 +273,159 @@
           <p class="mt-4 text-on-surface-variant flex gap-2 items-start"><span class="material-symbols-outlined text-primary text-[20px]" aria-hidden="true">tips_and_updates</span><span>The <strong class="text-on-surface">Refresh All</strong> button at the top regenerates every tool at once.</span></p>
         </section>
 
-        <!-- The tools -->
+        <!-- The tools — expanded to all 14 generators -->
         <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
           <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
             <span class="material-symbols-outlined text-primary" aria-hidden="true">grid_view</span> What each tool is for
           </h2>
-          <div class="overflow-x-auto">
+
+          <!-- Passcodes group -->
+          <h3 class="font-label-caps text-label-caps text-secondary uppercase mb-2 mt-2">Passcodes</h3>
+          <div class="overflow-x-auto mb-6">
             <table class="w-full text-left text-body-sm border-collapse">
               <thead>
                 <tr class="border-b border-outline-variant text-secondary font-label-caps text-label-caps uppercase">
-                  <th class="py-3 pr-4">Tool</th>
+                  <th class="py-3 pr-4 w-40">Tool</th>
                   <th class="py-3">What it's for</th>
                 </tr>
               </thead>
               <tbody class="text-on-surface-variant">
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Password</td><td class="py-3">A strong password for any account. Use the longest length the website allows.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Passphrase</td><td class="py-3">A password made of real words — easier to read and type by hand when you have to.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">API Key</td><td class="py-3">A random key to connect an app or script to a service.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">TOTP Secret</td><td class="py-3">Sets up two-factor authentication codes in an app like Google Authenticator or Authy.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">AES Key</td><td class="py-3">A secret key used to encrypt files or data.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">HMAC Key</td><td class="py-3">A secret key used to sign data and check it hasn't been tampered with.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Salt</td><td class="py-3">A random value used when storing passwords securely.</td></tr>
-                <tr class="border-b border-outline-variant/60"><td class="py-3 pr-4 font-bold text-on-surface">Session Token</td><td class="py-3">A random value that identifies a signed-in session.</td></tr>
-                <tr><td class="py-3 pr-4 font-bold text-on-surface">CSRF Token</td><td class="py-3">A random value that protects web forms from a common type of attack.</td></tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">Password</td>
+                  <td class="py-3">A strong password for any account. Mixes letters, digits, and symbols for maximum entropy. Use the longest length the service allows — 12+ characters is the minimum, 16+ for anything sensitive.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">Passphrase</td>
+                  <td class="py-3">A password made of random words joined together — easier to remember and type by hand. Slightly lower character-density entropy, but much less error-prone when you have to enter it manually.</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4 font-bold text-on-surface">TOTP Secret</td>
+                  <td class="py-3">A Base32-encoded secret that seeds a time-based one-time password (TOTP) app such as Google Authenticator or Authy. Compatible with RFC 6238. Scan the QR code to register it in your authenticator app.</td>
+                </tr>
               </tbody>
             </table>
           </div>
-          <p class="mt-4 text-on-surface-variant text-body-sm">Not sure which one you need? For everyday logins, use <strong class="text-on-surface">Password</strong> or <strong class="text-on-surface">Passphrase</strong>. The rest are building blocks for apps and websites.</p>
+
+          <!-- Tokens group -->
+          <h3 class="font-label-caps text-label-caps text-secondary uppercase mb-2">Tokens</h3>
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-left text-body-sm border-collapse">
+              <thead>
+                <tr class="border-b border-outline-variant text-secondary font-label-caps text-label-caps uppercase">
+                  <th class="py-3 pr-4 w-40">Tool</th>
+                  <th class="py-3">What it's for</th>
+                </tr>
+              </thead>
+              <tbody class="text-on-surface-variant">
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">API Key</td>
+                  <td class="py-3">A random string to authenticate API clients. Treat it like a password — store it in a secrets manager, never commit it to source control. 48+ characters is recommended for production use.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">Session Token</td>
+                  <td class="py-3">An opaque random token for identifying a signed-in session. Store it server-side (or in a secure, HttpOnly cookie), and always transmit it over HTTPS. 32+ bytes of entropy is the minimum.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">CSRF Token</td>
+                  <td class="py-3">A per-session random value embedded in web forms to prevent cross-site request forgery attacks. The server generates it, embeds it in the HTML, and validates it on every state-changing request.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">UUID</td>
+                  <td class="py-3">A universally unique identifier following RFC 9562 (UUIDv4). Useful for database primary keys, correlation IDs, request tracing, and anywhere you need a globally unique string without a central coordinator.</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4 font-bold text-on-surface">JWT Secret</td>
+                  <td class="py-3">An HMAC signing secret shared between the JWT issuer and verifier. Used for HS256, HS384, and HS512 algorithms. Should be at least 256 bits — longer is better and has no practical downside.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Keys group -->
+          <h3 class="font-label-caps text-label-caps text-secondary uppercase mb-2">Keys</h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-body-sm border-collapse">
+              <thead>
+                <tr class="border-b border-outline-variant text-secondary font-label-caps text-label-caps uppercase">
+                  <th class="py-3 pr-4 w-40">Tool</th>
+                  <th class="py-3">What it's for</th>
+                </tr>
+              </thead>
+              <tbody class="text-on-surface-variant">
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">Salt</td>
+                  <td class="py-3">A random byte sequence used when hashing passwords with bcrypt, scrypt, or Argon2. The salt ensures two users with the same password produce different hashes. Use 16+ bytes — most libraries handle this for you automatically.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">AES Key</td>
+                  <td class="py-3">A symmetric key for AES-GCM encryption. Use 256-bit (the default) for all new applications. Symmetric means the same key encrypts and decrypts — keep it secret and never embed it in client-side code.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">HMAC Key</td>
+                  <td class="py-3">A secret key for computing HMAC-SHA-256 message authentication codes. Used to sign data payloads and verify they have not been tampered with in transit. 256+ bits gives you a security margin that matches the hash output.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">RSA Keypair</td>
+                  <td class="py-3">An asymmetric encryption and signing keypair exported as standard PEM files (SPKI for the public key, PKCS#8 for the private key). RSA-4096 is available for long-term key material. Use the public key to encrypt or verify; keep the private key offline.</td>
+                </tr>
+                <tr class="border-b border-outline-variant/60">
+                  <td class="py-3 pr-4 font-bold text-on-surface">ECDSA Keypair</td>
+                  <td class="py-3">An elliptic-curve signing keypair (P-256 or P-384) exported in PKCS#8 + SPKI PEM format. Smaller keys and faster operations than RSA, with equivalent security. Suitable for TLS certificates, code signing, and JWTs using ES256/ES384.</td>
+                </tr>
+                <tr>
+                  <td class="py-3 pr-4 font-bold text-on-surface">Ed25519 Keypair</td>
+                  <td class="py-3">A modern, high-performance signing keypair based on the Edwards-curve Digital Signature Algorithm. Fast, compact, and resistant to several classes of implementation errors. Exported as standard PEM files. A solid default for new signing use-cases.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="mt-4 text-on-surface-variant text-body-sm">Not sure which one you need? For everyday logins, use <strong class="text-on-surface">Password</strong> or <strong class="text-on-surface">Passphrase</strong>. The rest are building blocks for apps and websites. <a href="/" class="text-primary underline hover:text-on-surface transition-colors">Try them all in the generator.</a></p>
+        </section>
+
+        <!-- Features -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-4 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">auto_awesome</span> Features
+          </h2>
+          <ul class="space-y-4 text-on-surface-variant">
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">speed</span>
+              <span><strong class="text-on-surface">Strength estimate.</strong> Every generator shows a live entropy count and a crack-time badge — so you can see the security difference between 12 characters and 20 at a glance.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">layers</span>
+              <span><strong class="text-on-surface">Batch generation.</strong> Use the COUNT control to generate up to 100 values in a single click. All of them stack in the output area and export together.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">download</span>
+              <span><strong class="text-on-surface">Export.</strong> Download results as TXT (one value per line), CSV (with headers), or ENV (KEY=value format) via the Export menu. Everything is assembled locally — no upload, no server.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">content_copy</span>
+              <span><strong class="text-on-surface">Copy + auto-clear clipboard.</strong> One click copies the value. The clipboard is automatically cleared after a configurable delay so sensitive values don't linger.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">visibility</span>
+              <span><strong class="text-on-surface">Show / hide value.</strong> A toggle masks the generated value so it doesn't show on screen — useful when working in a shared space or screen-sharing.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">qr_code</span>
+              <span><strong class="text-on-surface">QR code.</strong> For short values, a "Show QR" button renders a scannable QR code on screen. The TOTP Secret generator produces a Google Authenticator–compatible <code class="font-mono text-body-sm">otpauth://</code> URI. Long values like keypair PEMs do not get a QR button.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">history</span>
+              <span><strong class="text-on-surface">Session history.</strong> Recent values are kept in memory only for the duration of the session. Reloading the page clears everything — nothing is written to localStorage, IndexedDB, or cookies.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">wifi_off</span>
+              <span><strong class="text-on-surface">Works offline (PWA).</strong> A service worker caches the app shell on the first visit. After that, the tool works identically with no internet connection.</span>
+            </li>
+            <li class="flex gap-3">
+              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">code</span>
+              <span><strong class="text-on-surface">PEM output for keypairs.</strong> RSA, ECDSA, and Ed25519 generators export standard PEM-encoded keys (SPKI for public, PKCS#8 for private), displayed in a scrollable output area so you can review them before copying.</span>
+            </li>
+          </ul>
         </section>
 
         <!-- Tips -->
@@ -204,6 +439,66 @@
             <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]" aria-hidden="true">check_circle</span><span><strong class="text-on-surface">Save it in a password manager</strong> right after generating — these values are not stored here.</span></li>
             <li class="flex gap-3"><span class="material-symbols-outlined text-tertiary text-[20px]" aria-hidden="true">check_circle</span><span><strong class="text-on-surface">Generate a fresh value</strong> for each new account or service.</span></li>
           </ul>
+        </section>
+
+        <!-- FAQ -->
+        <section class="bg-white border border-outline-variant rounded-xl p-6 sm:p-8 shadow-sm">
+          <h2 class="font-headline-md text-headline-md mb-6 flex items-center gap-2">
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">help</span> Frequently asked questions
+          </h2>
+          <div class="space-y-6">
+
+            <div>
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Is my data sent to a server?</h3>
+              <p class="text-on-surface-variant leading-relaxed">No — everything runs in your browser. No network requests are made after the page loads. All generation uses the browser's built-in Web Crypto API.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Are the generated values cryptographically secure?</h3>
+              <p class="text-on-surface-variant leading-relaxed">Yes. RandKeyKit uses <code class="font-mono text-body-sm">crypto.getRandomValues</code>, the browser's CSPRNG (Cryptographically Secure Pseudo-Random Number Generator), for all output.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Does it work offline?</h3>
+              <p class="text-on-surface-variant leading-relaxed">Yes — after the first visit, a service worker caches the app shell. You can open it with no internet connection and it works exactly the same.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Are generated values stored anywhere?</h3>
+              <p class="text-on-surface-variant leading-relaxed">No. Values only exist in memory while the page is open. Closing or reloading the tab clears everything — nothing is written to localStorage, IndexedDB, or cookies.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Can I generate many values at once?</h3>
+              <p class="text-on-surface-variant leading-relaxed">Yes. Use the COUNT control to generate up to 100 values in a single click. All of them stack in the output area and can be exported together.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">How do I export the results?</h3>
+              <p class="text-on-surface-variant leading-relaxed">Click the Export menu and choose TXT (one value per line), CSV (with headers), or ENV (KEY=value format). The file is assembled locally and downloaded directly — no upload.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Which password length should I use?</h3>
+              <p class="text-on-surface-variant leading-relaxed">At least 12 characters for personal accounts, 16+ for anything sensitive. The strength badge shows the estimated crack time, so you can see the difference immediately.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">What is a TOTP secret for?</h3>
+              <p class="text-on-surface-variant leading-relaxed">A TOTP secret seeds a time-based one-time password app like Google Authenticator or Authy. The server and the app share the same secret, and both derive the same 6-digit code every 30 seconds.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">What is the difference between a Password and a Passphrase?</h3>
+              <p class="text-on-surface-variant leading-relaxed">A Password mixes letters, digits, and symbols — high entropy, hard to memorize. A Passphrase is several random words joined together — slightly lower character entropy but much easier to remember and type correctly.</p>
+            </div>
+
+            <div class="border-t border-outline-variant/60 pt-6">
+              <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Can I scan a QR code to set up 2FA?</h3>
+              <p class="text-on-surface-variant leading-relaxed">Yes — for the TOTP Secret generator, a "Show QR" button renders a QR code that encodes a standard <code class="font-mono text-body-sm">otpauth://</code> URI. Scan it with Google Authenticator, Authy, or any compatible app.</p>
+            </div>
+
+          </div>
         </section>
 
       </div>

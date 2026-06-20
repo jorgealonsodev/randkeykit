@@ -274,7 +274,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   const exportKeyName = config.exportKeyName || config.id;
 
   const card = document.createElement("section");
-  card.className = "bg-white border border-outline-variant rounded-xl p-6 shadow-sm card-hover flex flex-col transition-all";
+  card.className = "scroll-mt-24 bg-white border border-outline-variant rounded-xl p-6 shadow-sm card-hover flex flex-col transition-all";
   card.id = config.id;
   card.setAttribute("aria-labelledby", `${config.id}-title`);
   if (config.category) {
