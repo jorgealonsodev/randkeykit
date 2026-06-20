@@ -186,6 +186,7 @@ function createControlElement(control, defaults, onParamChange) {
 export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate) {
   const card = document.createElement("section");
   card.className = "bg-white border border-outline-variant rounded-xl p-6 shadow-sm card-hover flex flex-col transition-all";
+  card.id = config.id;
   card.setAttribute("aria-labelledby", `${config.id}-title`);
   if (config.category) {
     card.dataset.category = config.category;
