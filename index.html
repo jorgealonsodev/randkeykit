@@ -2,11 +2,33 @@
 <html class="light" lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- CSP MUST be first in <head>, before any <link> or <script> that loads assets -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
-  <meta name="description" content="Cryptographic key, password, and token generator — all client-side, nothing sent to any server.">
-  <title>RandKeyKit | Local-First Cryptography</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RandKeyKit — Local-First Cryptographic Key Generator</title>
+  <meta name="description" content="Generate cryptographic keys, passwords, and tokens using the Web Crypto API. Everything runs locally in your browser — nothing is ever sent to any server.">
+  <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1">
+  <meta name="theme-color" content="#2563eb">
+  <link rel="canonical" href="https://randkeykit.xdev.es/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="RandKeyKit">
+  <meta property="og:title" content="RandKeyKit — Local-First Cryptographic Key Generator">
+  <meta property="og:description" content="Generate cryptographic keys, passwords, and tokens using the Web Crypto API. Everything runs locally in your browser — nothing is ever sent to any server.">
+  <meta property="og:url" content="https://randkeykit.xdev.es/">
+  <meta property="og:image" content="https://randkeykit.xdev.es/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="RandKeyKit — Generate cryptographic keys, passwords, and tokens locally in your browser.">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="RandKeyKit — Local-First Cryptographic Key Generator">
+  <meta name="twitter:description" content="Generate cryptographic keys, passwords, and tokens using the Web Crypto API. Everything runs locally in your browser — nothing is ever sent to any server.">
+  <meta name="twitter:image" content="https://randkeykit.xdev.es/assets/og-image.png">
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preload" as="style" href="assets/tailwind.css">
+  <link rel="preload" as="font" type="font/woff2" href="assets/fonts/Geist-Variable.woff2" crossorigin>
   <link rel="stylesheet" href="assets/tailwind.css">
 </head>
 <body class="bg-background font-body-base text-on-surface">
