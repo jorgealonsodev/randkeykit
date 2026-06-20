@@ -3,7 +3,7 @@
  *
  * Boot sequence:
  * 1. Check crypto.subtle availability (secure context guard)
- * 2. Import all 9 generators
+ * 2. Import all generators
  * 3. Create generator cards with controls
  * 4. Append cards to the DOM
  */
@@ -22,6 +22,9 @@ import { generateHMACKey } from "./generators/hmac-key.js";
 import { generateSessionToken } from "./generators/session-token.js";
 import { generateCSRFToken } from "./generators/csrf-token.js";
 import { generateTOTPSecret } from "./generators/totp-secret.js";
+import { generateUuid } from "./generators/uuid.js";
+import { generateJwtSecretCard } from "./generators/jwt-secret.js";
+import { qrToSvg } from "./crypto/qrcode.js";
 
 export const GENERATE_PLACEHOLDER = "Generate a new value to preview it here.";
 const REFRESH_ALL_DEFAULT_LABEL = `<span class="material-symbols-outlined">refresh</span> Refresh All`;
@@ -199,9 +202,7 @@ export function wireRefreshAll({ refreshAllButton, cards, secure, showToast }) {
 }
 
 /**
- * Card definitions for all 9 generators.
- * Order per PRD §5.1: API Key, Password, Passphrase, Salt, AES Key, HMAC Key,
- *   Session Token, CSRF Token, TOTP Secret.
+ * Card definitions for all generators.
  */
 const CARD_CONFIGS = [
   {
@@ -218,6 +219,7 @@ const CARD_CONFIGS = [
         { value: "alphanumeric", label: "Alphanumeric" },
         { value: "hex", label: "Hex" },
         { value: "base64url", label: "Base64URL" },
+        { value: "base58", label: "Base58" },
       ]},
       { type: "text", label: "Prefix", param: "prefix", default: "", placeholder: "Optional prefix (safe ASCII)" },
     ],
@@ -254,10 +256,13 @@ const CARD_CONFIGS = [
     category: "passcodes",
     description: "Memorable passphrase from random dictionary words. Easier to type and remember than passwords.",
     generator: generatePassphrase,
-    defaults: { words: 5, separator: "-", capitalize: false, appendNumber: false },
+    defaults: { words: 5, separator: "-", capitalize: false, appendNumber: false, wordlist: "eff-large" },
     controls: [
       { type: "range", label: "Words", param: "words", min: 3, max: 10, default: 5, hint: "count" },
       { type: "text", label: "Separator", param: "separator", default: "-" },
+      { type: "select", label: "Wordlist", param: "wordlist", default: "eff-large", options: [
+        { value: "eff-large", label: "EFF large (demo: 100 words)" },
+      ]},
       { type: "checkbox", label: "Capitalize", param: "capitalize", default: false },
       { type: "checkbox", label: "Append number", param: "appendNumber", default: false },
     ],
@@ -278,6 +283,7 @@ const CARD_CONFIGS = [
       { type: "select", label: "Format", param: "format", default: "hex", options: [
         { value: "hex", label: "Hex" },
         { value: "base64", label: "Base64" },
+        { value: "base58", label: "Base58" },
       ]},
     ],
     showEntropy: false,
@@ -299,6 +305,7 @@ const CARD_CONFIGS = [
       { type: "select", label: "Format", param: "format", default: "base64", options: [
         { value: "hex", label: "Hex" },
         { value: "base64", label: "Base64" },
+        { value: "base58", label: "Base58" },
       ]},
     ],
     showEntropy: false,
@@ -320,6 +327,7 @@ const CARD_CONFIGS = [
       { type: "select", label: "Format", param: "format", default: "base64", options: [
         { value: "hex", label: "Hex" },
         { value: "base64", label: "Base64" },
+        { value: "base58", label: "Base58" },
       ]},
     ],
     showEntropy: false,
@@ -337,6 +345,7 @@ const CARD_CONFIGS = [
       { type: "select", label: "Format", param: "format", default: "base64url", options: [
         { value: "hex", label: "Hex" },
         { value: "base64url", label: "Base64URL" },
+        { value: "base58", label: "Base58" },
       ]},
     ],
     showEntropy: false,
@@ -354,6 +363,42 @@ const CARD_CONFIGS = [
       { type: "select", label: "Format", param: "format", default: "base64url", options: [
         { value: "hex", label: "Hex" },
         { value: "base64url", label: "Base64URL" },
+        { value: "base58", label: "Base58" },
+      ]},
+    ],
+    showEntropy: false,
+  },
+  {
+    id: "uuid",
+    title: "UUID",
+    icon: "fingerprint",
+    category: "tokens",
+    description: "RFC 9562 UUIDs for identifiers, correlation IDs, and sortable event keys.",
+    generator: generateUuid,
+    defaults: { version: "v4", count: 1 },
+    controls: [
+      { type: "select", label: "Version", param: "version", default: "v4", options: [
+        { value: "v4", label: "UUID v4 (random)" },
+        { value: "v7", label: "UUID v7 (time-ordered)" },
+      ]},
+      { type: "range", label: "Count", param: "count", min: 1, max: 10, default: 1, hint: "count" },
+    ],
+    showEntropy: false,
+  },
+  {
+    id: "jwt-secret",
+    title: "JWT Secret",
+    icon: "token",
+    category: "tokens",
+    description: "HMAC signing secret for JWT issuers and verifiers. Use HS512 when you need one secret for every HS algorithm.",
+    generator: generateJwtSecretCard,
+    defaults: { algorithm: "HS256" },
+    controls: [
+      { type: "select", label: "Algorithm", param: "algorithm", default: "HS256", options: [
+        { value: "HS256", label: "HS256 (32 bytes)" },
+        { value: "HS384", label: "HS384 (48 bytes)" },
+        { value: "HS512", label: "HS512 (64 bytes)" },
+        { value: "any", label: "Any (64 bytes)" },
       ]},
     ],
     showEntropy: false,
@@ -365,14 +410,26 @@ const CARD_CONFIGS = [
     category: "passcodes",
     description: "Base32-encoded secret for Time-based One-Time Passwords (Google Authenticator compatible).",
     generator: generateTOTPSecret,
-    defaults: { bits: 160 },
+    defaults: { bits: 160, issuer: "RandKeyKit", account: "" },
     controls: [
       { type: "select", label: "Secret size", param: "bits", default: 160, parse: Number, options: [
         { value: 160, label: "160-bit (20B)" },
         { value: 256, label: "256-bit (32B)" },
         { value: 320, label: "320-bit (40B)" },
       ]},
+      { type: "text", label: "Issuer", param: "issuer", default: "RandKeyKit", placeholder: "Authenticator issuer" },
+      { type: "text", label: "Account", param: "account", default: "", placeholder: "user@example.com" },
     ],
+    qrSlot: (result) => {
+      if (!result.otpauthUri) {
+        return null;
+      }
+
+      return {
+        svg: qrToSvg(result.otpauthUri, { moduleSize: 4, margin: 2 }),
+        downloadName: "totp-qr.svg",
+      };
+    },
     showEntropy: false,
   },
 ];

@@ -8,7 +8,7 @@
  */
 
 import { getRandomBytes, getRandomInt } from "../crypto/random.js";
-import { encodeHex, encodeBase64URL } from "../crypto/encoders.js";
+import { encodeHex, encodeBase64URL, encodeBase58 } from "../crypto/encoders.js";
 
 const CHARSET_ALPHANUMERIC = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 const CHARSET_HEX = "0123456789abcdef";
@@ -17,6 +17,7 @@ const FORMATS = {
   alphanumeric: { charset: CHARSET_ALPHANUMERIC, generate: generateCharsetKey },
   hex: { charset: CHARSET_HEX, generate: generateHexKey },
   base64url: { generate: generateBase64URLKey },
+  base58: { generate: generateBase58Key },
 };
 
 function generateCharsetKey(charset, length) {
@@ -36,6 +37,11 @@ function generateHexKey(bytesNeeded) {
 function generateBase64URLKey(bytesNeeded) {
   const bytes = getRandomBytes(bytesNeeded);
   return encodeBase64URL(bytes);
+}
+
+function generateBase58Key(bytesNeeded) {
+  const bytes = getRandomBytes(bytesNeeded);
+  return encodeBase58(bytes);
 }
 
 /**
@@ -70,7 +76,7 @@ export function generateAPIKey(params = {}) {
 
   const fmt = FORMATS[format];
   if (!fmt) {
-    throw new Error(`Unknown format: ${format}. Use "alphanumeric", "hex", or "base64url".`);
+    throw new Error(`Unknown format: ${format}. Use "alphanumeric", "hex", "base64url", or "base58".`);
   }
 
   let value;
@@ -83,11 +89,14 @@ export function generateAPIKey(params = {}) {
     const bytesNeeded = Math.ceil(length / 2);
     value = generateHexKey(bytesNeeded).slice(0, length);
     charsetSize = 16;
-  } else {
-    // base64url — generate exact byte count, may produce longer output
+  } else if (format === "base64url") {
     const bytesNeeded = Math.ceil((length * 6) / 8);
     value = generateBase64URLKey(bytesNeeded).slice(0, length);
     charsetSize = 64;
+  } else if (format === "base58") {
+    const bytesNeeded = Math.ceil((length * Math.log2(58)) / 8);
+    value = generateBase58Key(bytesNeeded).slice(0, length);
+    charsetSize = 58;
   }
 
   const fullValue = prefix + value;
@@ -108,6 +117,7 @@ export function estimateEntropy(params = {}) {
   let charsetSize;
   if (format === "alphanumeric") charsetSize = 62;
   else if (format === "hex") charsetSize = 16;
+  else if (format === "base58") charsetSize = 58;
   else charsetSize = 64; // base64url
 
   return Math.floor(length * Math.log2(charsetSize));

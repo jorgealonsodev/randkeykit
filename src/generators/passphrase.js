@@ -16,6 +16,7 @@ import { WORDS } from "../data/words.js";
  * @param {string} [params.separator="-"] - Word separator
  * @param {boolean} [params.capitalize=false] - Capitalize each word
  * @param {boolean} [params.appendNumber=false] - Append random digit
+ * @param {string} [params.wordlist="eff-large"] - Wordlist selector (placeholder, unused)
  * @returns {{ value: string, entropy: number }}
  */
 export function generatePassphrase(params = {}) {

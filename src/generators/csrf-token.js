@@ -7,7 +7,7 @@
  */
 
 import { getRandomBytes } from "../crypto/random.js";
-import { encodeHex, encodeBase64URL } from "../crypto/encoders.js";
+import { encodeHex, encodeBase64URL, encodeBase58 } from "../crypto/encoders.js";
 
 /**
  * Generates a CSRF token.
@@ -31,8 +31,10 @@ export function generateCSRFToken(params = {}) {
     value = encodeHex(randomBytes);
   } else if (format === "base64url") {
     value = encodeBase64URL(randomBytes);
+  } else if (format === "base58") {
+    value = encodeBase58(randomBytes);
   } else {
-    throw new Error(`Unknown format: ${format}. Use "hex" or "base64url".`);
+    throw new Error(`Unknown format: ${format}. Use "hex", "base64url", or "base58".`);
   }
 
   return { value };

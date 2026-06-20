@@ -261,7 +261,7 @@ test("refresh-all insecure contract short-circuits and skips generation", async 
   }
 });
 
-test("boot renders nine cards and wires refresh-all against the real DOM shell", async () => {
+test("boot renders eleven cards and wires refresh-all against the real DOM shell", async () => {
   const restoreDom = installDom(`<!doctype html><html><body>
     <main id="app"></main>
     <button id="refresh-all" type="button">Refresh All</button>
@@ -278,7 +278,7 @@ test("boot renders nine cards and wires refresh-all against the real DOM shell",
     boot();
 
     const cards = app.querySelectorAll("section");
-    assert.equal(cards.length, 9);
+    assert.equal(cards.length, 11);
     assert.equal(document.getElementById("secure-context-banner").hidden, true);
 
     refreshAllButton.click();
@@ -290,8 +290,39 @@ test("boot renders nine cards and wires refresh-all against the real DOM shell",
     });
 
     const outputs = [...app.querySelectorAll("output")];
-    assert.equal(outputs.length, 9);
+    assert.equal(outputs.length, 11);
     assert.ok(outputs.some((output) => output.textContent !== GENERATE_PLACEHOLDER));
+  } finally {
+    restoreCrypto();
+    restoreDom();
+  }
+});
+
+test("boot exposes v2b controls on the live DOM", () => {
+  const restoreDom = installDom(`<!doctype html><html><body>
+    <main id="app"></main>
+    <button id="refresh-all" type="button">Refresh All</button>
+    <div id="toast" class="opacity-0 translate-y-6"></div>
+    <div id="secure-context-banner" hidden></div>
+  </body></html>`);
+  const restoreCrypto = installCrypto();
+
+  try {
+    boot();
+
+    const apiKeyCard = document.getElementById("api-key");
+    const uuidCard = document.getElementById("uuid");
+    const jwtCard = document.getElementById("jwt-secret");
+    const passphraseCard = document.getElementById("passphrase");
+    const totpCard = document.getElementById("totp-secret");
+
+    assert.ok(apiKeyCard.querySelector('option[value="base58"]'));
+    assert.ok(uuidCard);
+    assert.ok(jwtCard);
+    assert.ok(passphraseCard.textContent.includes("WORDLIST"));
+    assert.ok(passphraseCard.textContent.includes("EFF large (demo: 100 words)"));
+    assert.ok(totpCard.textContent.includes("ISSUER"));
+    assert.ok(totpCard.textContent.includes("ACCOUNT"));
   } finally {
     restoreCrypto();
     restoreDom();

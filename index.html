@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP MUST be first in <head>, before any <link> or <script> that loads assets -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-6qTQfSzoGbcnE2CG+nnxv0GBWLwgTW/MQjcb45SnwU4=' 'sha256-M/rPo5K+QcOirbTqUstUrlm4J6z4hLPjDy64ysOlNEk='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-SCq8BwhZKolMJ/32IrE/hRkjLOFs0OYIo1+y3yv5Tmc=' 'sha256-sjcppG/1LpwmPoBX41UB+uYCn0BcRZ1U9Vrp7jDuTW4='; style-src 'self'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RandKeyKit — Local-First Cryptographic Key Generator</title>
   <meta name="description" content="Generate cryptographic keys, passwords, and tokens using the Web Crypto API. Everything runs locally in your browser — nothing is ever sent to any server.">
@@ -74,6 +74,8 @@
         "HMAC Key Generator",
         "Session Token Generator",
         "CSRF Token Generator",
+        "UUID Generator",
+        "JWT Secret Generator",
         "TOTP Secret Generator"
       ]
     }
@@ -155,6 +157,22 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "A TOTP secret is the shared key used to generate time-based one-time passwords for two-factor authentication. RandKeyKit produces TOTP-compatible Base32 secrets locally in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a UUID?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A UUID is a universally unique identifier used for records, events, and correlation IDs. RandKeyKit generates RFC 9562 UUID v4 and UUID v7 values locally in your browser."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "What is a JWT secret?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "A JWT secret is a high-entropy signing key used with HMAC-based JSON Web Tokens. RandKeyKit generates HS256, HS384, and HS512 compatible secrets locally in your browser."
       }
     }
   ]
@@ -328,7 +346,7 @@
               <div>
                 <div class="flex justify-between text-body-sm mb-1">
                   <span>Generators available</span>
-                  <span class="font-bold text-primary">9</span>
+                  <span class="font-bold text-primary">11</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full">
                   <div class="w-full h-full bg-primary rounded-full"></div>
@@ -373,6 +391,8 @@
         <a href="#hmac-key" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">HMAC Key</a>
         <a href="#session-token" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Session Token</a>
         <a href="#csrf-token" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">CSRF Token</a>
+        <a href="#uuid" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">UUID</a>
+        <a href="#jwt-secret" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">JWT Secret</a>
         <a href="#totp-secret" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">TOTP Secret</a>
       </nav>
       <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-outline-variant">

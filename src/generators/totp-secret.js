@@ -7,19 +7,26 @@
  *
  * The secret is encoded per RFC 4648 §6 but with padding stripped,
  * matching the Google Authenticator convention.
+ *
+ * Optionally returns an otpauth:// URI for QR code generation.
  */
 
 import { getRandomBytes } from "../crypto/random.js";
 import { encodeBase32 } from "../crypto/encoders.js";
+import { buildOtpauthUri } from "../crypto/otpauth.js";
 
 /**
  * Generates a TOTP secret.
  * @param {Object} params
  * @param {number} [params.bits=160] - Secret size in bits (≥160)
- * @returns {{ value: string }}
+ * @param {string} [params.issuer=""] - Issuer name for otpauth URI
+ * @param {string} [params.account=""] - Account name for otpauth URI
+ * @returns {{ value: string, otpauthUri?: string }}
  */
 export function generateTOTPSecret(params = {}) {
   const bits = params.bits ?? 160;
+  const issuer = params.issuer ?? "";
+  const account = params.account ?? "";
 
   if (bits < 160) {
     throw new Error(`TOTP secret must be at least 160 bits, got ${bits}`);
@@ -36,5 +43,16 @@ export function generateTOTPSecret(params = {}) {
   const padded = encodeBase32(randomBytes);
   const value = padded.replace(/=+$/, "");
 
-  return { value };
+  const result = { value };
+
+  // Build otpauth URI if issuer is provided
+  if (issuer) {
+    result.otpauthUri = buildOtpauthUri({
+      secret: value,
+      issuer,
+      account,
+    });
+  }
+
+  return result;
 }

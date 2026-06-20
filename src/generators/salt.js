@@ -7,7 +7,7 @@
  */
 
 import { getRandomBytes } from "../crypto/random.js";
-import { encodeHex, encodeBase64 } from "../crypto/encoders.js";
+import { encodeHex, encodeBase64, encodeBase58 } from "../crypto/encoders.js";
 
 /**
  * Generates a salt.
@@ -31,8 +31,10 @@ export function generateSalt(params = {}) {
     value = encodeBase64(randomBytes);
   } else if (format === "hex") {
     value = encodeHex(randomBytes);
+  } else if (format === "base58") {
+    value = encodeBase58(randomBytes);
   } else {
-    throw new Error(`Unknown format: ${format}. Use "hex" or "base64".`);
+    throw new Error(`Unknown format: ${format}. Use "hex", "base64", or "base58".`);
   }
 
   return { value };

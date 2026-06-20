@@ -162,6 +162,25 @@
     outline: 2px solid #2563eb;
     outline-offset: 4px;
   }
+
+  .qr-svg-container {
+    width: 100%;
+  }
+
+  .qr-svg-wrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+  }
+
+  .qr-svg-wrapper svg {
+    width: min(200px, 100%);
+    height: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 0.75rem;
+    background: white;
+    padding: 0.5rem;
+  }
 }
 
 @layer utilities {

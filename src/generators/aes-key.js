@@ -8,7 +8,7 @@
  * CRITICAL: extractable is set to true — without this, exportKey throws InvalidAccessError.
  */
 
-import { encodeHex, encodeBase64 } from "../crypto/encoders.js";
+import { encodeHex, encodeBase64, encodeBase58 } from "../crypto/encoders.js";
 
 const VALID_BITS = new Set([128, 192, 256]);
 
@@ -40,9 +40,16 @@ export async function generateAESKey(params = {}) {
   const rawBytes = await globalThis.crypto.subtle.exportKey("raw", key);
   const bytes = new Uint8Array(rawBytes);
 
-  const value = format === "hex"
-    ? encodeHex(bytes)
-    : encodeBase64(bytes);
+  let value;
+  if (format === "hex") {
+    value = encodeHex(bytes);
+  } else if (format === "base64") {
+    value = encodeBase64(bytes);
+  } else if (format === "base58") {
+    value = encodeBase58(bytes);
+  } else {
+    throw new Error(`Unknown format: ${format}. Use "hex", "base64", or "base58".`);
+  }
 
   return { value };
 }

@@ -86,3 +86,82 @@ export function encodeBase32(bytes) {
 
   return result;
 }
+
+/** Base58 Bitcoin/IPFS alphabet (no 0, O, I, l) */
+const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+
+/**
+ * Encodes bytes to Base58 (Bitcoin/IPFS alphabet).
+ * Leading zero bytes map to leading '1' characters.
+ * @param {Uint8Array} bytes
+ * @returns {string} Base58-encoded string
+ */
+export function encodeBase58(bytes) {
+  if (bytes.length === 0) return "";
+
+  // Count leading zeros
+  let leadingZeros = 0;
+  for (let i = 0; i < bytes.length && bytes[i] === 0; i++) {
+    leadingZeros++;
+  }
+
+  // Convert to BigInt for division
+  let num = 0n;
+  for (let i = 0; i < bytes.length; i++) {
+    num = num * 256n + BigInt(bytes[i]);
+  }
+
+  // Divide by 58 repeatedly
+  let result = "";
+  while (num > 0n) {
+    const remainder = Number(num % 58n);
+    num = num / 58n;
+    result = BASE58_ALPHABET[remainder] + result;
+  }
+
+  // Prepend '1' for each leading zero byte
+  return "1".repeat(leadingZeros) + result;
+}
+
+/**
+ * Decodes a Base58 string back to Uint8Array.
+ * Leading '1' characters map to leading 0x00 bytes.
+ * @param {string} str - Base58-encoded string
+ * @returns {Uint8Array} Decoded bytes
+ * @throws {Error} if string contains invalid characters
+ */
+export function decodeBase58(str) {
+  if (str.length === 0) return new Uint8Array(0);
+
+  // Count leading '1's
+  let leadingOnes = 0;
+  for (let i = 0; i < str.length && str[i] === "1"; i++) {
+    leadingOnes++;
+  }
+
+  // Convert from Base58 to BigInt
+  let num = 0n;
+  for (let i = 0; i < str.length; i++) {
+    const index = BASE58_ALPHABET.indexOf(str[i]);
+    if (index === -1) {
+      throw new Error(`Invalid Base58 character: '${str[i]}' at position ${i}`);
+    }
+    num = num * 58n + BigInt(index);
+  }
+
+  // Convert BigInt to bytes
+  const hexStr = num === 0n ? "" : num.toString(16);
+  const paddedHex = hexStr.length % 2 ? "0" + hexStr : hexStr;
+  const dataBytes = [];
+  for (let i = 0; i < paddedHex.length; i += 2) {
+    dataBytes.push(parseInt(paddedHex.slice(i, i + 2), 16));
+  }
+
+  // Prepend leading zero bytes
+  const result = new Uint8Array(leadingOnes + dataBytes.length);
+  for (let i = 0; i < dataBytes.length; i++) {
+    result[leadingOnes + i] = dataBytes[i];
+  }
+
+  return result;
+}

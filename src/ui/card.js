@@ -339,6 +339,43 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   outputWrapper.appendChild(toggleButton);
   card.appendChild(outputWrapper);
 
+  // --- QR slot (optional, for TOTP and future QR-enabled cards) ---
+  const qrContainer = document.createElement("div");
+  qrContainer.className = "qr-svg-container flex flex-col items-center gap-2 mb-4";
+  qrContainer.hidden = true;
+
+  const qrSvgWrapper = document.createElement("div");
+  qrSvgWrapper.className = "qr-svg-wrapper";
+
+  const qrDownloadBtn = document.createElement("button");
+  qrDownloadBtn.type = "button";
+  qrDownloadBtn.className = "px-4 py-2 text-body-sm border border-outline-variant rounded-lg hover:bg-slate-50 transition-all focus-visible:ring-2 focus-visible:ring-primary/40";
+  qrDownloadBtn.textContent = "Download QR";
+  qrDownloadBtn.setAttribute("aria-label", "Download QR code as SVG");
+
+  qrContainer.append(qrSvgWrapper, qrDownloadBtn);
+  card.appendChild(qrContainer);
+
+  function showQr(svgString, downloadName) {
+    qrSvgWrapper.innerHTML = svgString;
+    qrContainer.hidden = false;
+
+    qrDownloadBtn.onclick = () => {
+      const blob = new Blob([svgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = downloadName || "qrcode.svg";
+      a.click();
+      URL.revokeObjectURL(url);
+    };
+  }
+
+  function hideQr() {
+    qrContainer.hidden = true;
+    qrSvgWrapper.innerHTML = "";
+  }
+
   // --- Error area ---
   const errorArea = document.createElement("div");
   errorArea.className = "bg-error-container text-on-error-container rounded-lg px-4 py-3 text-body-sm mb-4";
@@ -389,6 +426,16 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
         onGenerate(result);
       }
 
+      // QR slot: if config has qrSlot callback, call it and render SVG
+      if (typeof config.qrSlot === "function") {
+        const qrData = config.qrSlot(result, params);
+        if (qrData && qrData.svg) {
+          showQr(qrData.svg, qrData.downloadName);
+        } else {
+          hideQr();
+        }
+      }
+
       if (entropyBadge && result.entropy !== undefined) {
         setEntropyBadgeContent(entropyBadge, result.entropy, showCrackTime);
       }
@@ -397,6 +444,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     } catch (error) {
       showPlaceholder();
       toggleButton.hidden = true;
+      hideQr();
       errorArea.textContent = error.message || "Generation failed";
       errorArea.hidden = false;
       copyButton.disabled = true;
