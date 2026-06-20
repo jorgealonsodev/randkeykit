@@ -129,7 +129,7 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 p-margin-page">
+    <main id="main-content" tabindex="-1" class="flex-1 p-margin-page">
 
       <!-- Insecure context banner -->
       <div id="secure-context-banner" class="hidden" role="alert"></div>
@@ -138,7 +138,7 @@
       <div class="mb-section-gap flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 class="font-display-lg text-display-lg text-on-surface">Generator Suite</h1>
-          <p class="text-on-surface-variant font-body-base">Generate cryptographically secure keys and passwords locally.</p>
+          <p class="text-on-surface-variant font-body-base">Generate cryptographically secure keys and passwords locally using the Web Crypto API — local-first by design.</p>
         </div>
         <button id="refresh-all" type="button" class="flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold shadow-sm hover:shadow-md transition-all active:scale-95">
           <span class="material-symbols-outlined">refresh</span>
