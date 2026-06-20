@@ -1,0 +1,12 @@
+{
+  "name": "RandKeyKit",
+  "short_name": "RandKeyKit",
+  "description": "Free cryptographic key, password, and token generator. All local, no server.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1a1a2e",
+  "icons": [
+    { "src": "assets/apple-touch-icon.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
