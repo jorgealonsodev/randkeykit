@@ -210,7 +210,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
   const iconTile = document.createElement("div");
   iconTile.className = "w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary";
-  iconTile.innerHTML = `<span class="material-symbols-outlined">${config.icon || "key"}</span>`;
+  iconTile.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">${config.icon || "key"}</span>`;
 
   const title = document.createElement("h3");
   title.id = `${config.id}-title`;
@@ -288,12 +288,14 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   generateButton.dataset.action = "generate";
   generateButton.className = "flex-1 py-3 bg-primary text-white rounded-lg font-bold active:scale-95 transition-all";
   generateButton.textContent = "Generate";
+  generateButton.setAttribute("aria-label", "Generate new value");
 
   const copyButton = document.createElement("button");
   copyButton.type = "button";
   copyButton.dataset.action = "copy";
   copyButton.className = "px-4 py-3 border border-outline-variant rounded-lg hover:bg-slate-50 transition-all";
-  copyButton.innerHTML = `<span class="material-symbols-outlined">content_copy</span>`;
+  copyButton.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">content_copy</span>`;
+  copyButton.setAttribute("aria-label", "Copy to clipboard");
   copyButton.disabled = true;
 
   actions.append(generateButton, copyButton);
@@ -304,7 +306,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     try {
       errorArea.hidden = true;
       generateButton.disabled = true;
-      generateButton.innerHTML = `<span class="material-symbols-outlined animate-spin">progress_activity</span>`;
+      generateButton.innerHTML = `<span class="material-symbols-outlined animate-spin" aria-hidden="true">progress_activity</span>`;
 
       const result = await Promise.resolve(config.generator(params));
       showValue(result.value);
@@ -347,12 +349,12 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       return;
     }
 
-    copyButton.innerHTML = `<span class="material-symbols-outlined">check</span>`;
+    copyButton.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">check</span>`;
     copyButton.classList.add("border-tertiary/30", "bg-tertiary/10", "text-tertiary");
     setToast(`${config.title} copied to clipboard.`, onToast);
 
     setTimeout(() => {
-      copyButton.innerHTML = `<span class="material-symbols-outlined">content_copy</span>`;
+      copyButton.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">content_copy</span>`;
       copyButton.classList.remove("border-tertiary/30", "bg-tertiary/10", "text-tertiary");
     }, 1500);
   });
