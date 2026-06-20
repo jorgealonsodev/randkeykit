@@ -107,7 +107,7 @@ function buildRangeUnit(control) {
   return " chars";
 }
 
-function createControlElement(control, defaults, onParamChange) {
+function createControlElement(control, defaults, onParamChange, idPrefix = "field") {
   if (control.type === "checkbox-group") {
     const section = document.createElement("div");
     section.className = "space-y-3";
@@ -128,6 +128,8 @@ function createControlElement(control, defaults, onParamChange) {
       input.type = "checkbox";
       input.className = "rounded text-primary focus:ring-primary";
       input.checked = Boolean(defaults[option.param] ?? option.default);
+      input.id = `${idPrefix}-${option.param}`;
+      input.name = option.param;
       input.addEventListener("change", () => {
         onParamChange(option.param, input.checked);
       });
@@ -156,6 +158,7 @@ function createControlElement(control, defaults, onParamChange) {
       const label = document.createElement("label");
       label.className = "font-label-caps text-label-caps text-secondary";
       label.textContent = control.label.toUpperCase();
+      label.setAttribute("for", `${idPrefix}-${control.param}`);
 
       const unit = buildRangeUnit(control);
       const valueDisplay = document.createElement("span");
@@ -167,6 +170,8 @@ function createControlElement(control, defaults, onParamChange) {
 
       const input = document.createElement("input");
       input.type = "range";
+      input.id = `${idPrefix}-${control.param}`;
+      input.name = control.param;
       input.className = "rand-range w-full";
       input.min = String(control.min);
       input.max = String(control.max);
@@ -187,9 +192,12 @@ function createControlElement(control, defaults, onParamChange) {
       const label = document.createElement("label");
       label.className = "block font-label-caps text-label-caps text-secondary mb-2";
       label.textContent = control.label.toUpperCase();
+      label.setAttribute("for", `${idPrefix}-${control.param}`);
       wrapper.appendChild(label);
 
       const select = document.createElement("select");
+      select.id = `${idPrefix}-${control.param}`;
+      select.name = control.param;
       select.className = "w-full bg-surface-container-low border border-outline-variant rounded-lg p-2 text-body-sm outline-none focus:ring-2 focus:ring-primary/20";
       control.options.forEach((option) => {
         const element = document.createElement("option");
@@ -212,10 +220,13 @@ function createControlElement(control, defaults, onParamChange) {
       const label = document.createElement("label");
       label.className = "block font-label-caps text-label-caps text-secondary mb-2";
       label.textContent = control.label.toUpperCase();
+      label.setAttribute("for", `${idPrefix}-${control.param}`);
       wrapper.appendChild(label);
 
       const input = document.createElement("input");
       input.type = "text";
+      input.id = `${idPrefix}-${control.param}`;
+      input.name = control.param;
       input.className = "w-full bg-surface-container-low border border-outline-variant rounded-lg p-2 text-body-sm outline-none focus:ring-2 focus:ring-primary/20";
       input.value = String(value ?? "");
       input.placeholder = control.placeholder || "";
@@ -237,6 +248,8 @@ function createControlElement(control, defaults, onParamChange) {
       input.type = "checkbox";
       input.className = "rounded text-primary focus:ring-primary";
       input.checked = Boolean(value);
+      input.id = `${idPrefix}-${control.param}`;
+      input.name = control.param;
       input.addEventListener("change", () => {
         onParamChange(control.param, input.checked);
       });
@@ -321,8 +334,11 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     const batchLabel = document.createElement("label");
     batchLabel.className = "font-label-caps text-label-caps text-secondary";
     batchLabel.textContent = "COUNT";
+    batchLabel.setAttribute("for", `${config.id}-${instanceId}-count`);
 
     const batchSelect = document.createElement("select");
+    batchSelect.id = `${config.id}-${instanceId}-count`;
+    batchSelect.name = "batchCount";
     batchSelect.className = "rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-body-sm outline-none focus:ring-2 focus:ring-primary/20";
     batchSelect.setAttribute("aria-label", `${config.title} batch count`);
     [1, 5, 10, 25, 50, 100].forEach((optionValue) => {
@@ -356,7 +372,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   }
 
   config.controls.forEach((control) => {
-    controls.appendChild(createControlElement(control, params, onParamChange));
+    controls.appendChild(createControlElement(control, params, onParamChange, `${config.id}-${instanceId}`));
   });
   card.appendChild(controls);
 
