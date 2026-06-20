@@ -1,7 +1,8 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 
-const html = readFileSync('index.html', 'utf8');
+const filename = process.argv[2] || 'index.html';
+const html = readFileSync(filename, 'utf8');
 const regex = /<script type="application\/ld\+json">\s*([\s\S]*?)\s*<\/script>/g;
 const hashes = [];
 let match;
@@ -25,5 +26,5 @@ if (!cspRegex.test(html)) {
 }
 
 const updated = html.replace(cspRegex, replacement);
-writeFileSync('index.html', updated);
-console.log(`CSP hash updated: ${hashes.join(' ')}`);
+writeFileSync(filename, updated);
+console.log(`CSP hash updated in ${filename}: ${hashes.join(' ')}`);
