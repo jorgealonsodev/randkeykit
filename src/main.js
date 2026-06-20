@@ -12,6 +12,7 @@ import { createGeneratorCard } from "./ui/card.js";
 import { copyToClipboard } from "./ui/clipboard.js";
 import { createEntropyMap } from "./ui/entropy-map.js";
 import { getRefreshAllToastMessage } from "./ui/refresh.js";
+import { createHistoryStore, formatPreview } from "./ui/history.js";
 import { generateAPIKey, estimateEntropy as estimateAPIKeyEntropy } from "./generators/api-key.js";
 import { generatePassword, estimateEntropy as estimatePasswordEntropy } from "./generators/password.js";
 import { generatePassphrase, estimateEntropy as estimatePassphraseEntropy } from "./generators/passphrase.js";
@@ -87,8 +88,13 @@ export function createToastController(toast) {
   return showToast;
 }
 
-export function renderCards({ app, configs, createCard, copyValue, showToast, secure, onGenerate }) {
-  const cards = configs.map((config) => createCard(config, copyValue, showToast, onGenerate));
+export function renderCards({ app, configs, createCard, copyValue, showToast, secure, onGenerate, onCopy, autoClearMs }) {
+  const cards = configs.map((config) => createCard(
+    { ...config, onCopy, autoClearMs },
+    copyValue,
+    showToast,
+    onGenerate,
+  ));
 
   cards.forEach((card) => {
     app.appendChild(card);
@@ -217,6 +223,7 @@ const CARD_CONFIGS = [
     ],
     showEntropy: true,
     entropy: (params) => estimateAPIKeyEntropy(params),
+    showCrackTime: true,
   },
   {
     id: "password",
@@ -238,6 +245,7 @@ const CARD_CONFIGS = [
     ],
     showEntropy: true,
     entropy: (params) => estimatePasswordEntropy(params),
+    showCrackTime: true,
   },
   {
     id: "passphrase",
@@ -255,6 +263,7 @@ const CARD_CONFIGS = [
     ],
     showEntropy: true,
     entropy: (params) => estimatePassphraseEntropy(params),
+    showCrackTime: true,
   },
   {
     id: "salt",
@@ -368,6 +377,88 @@ const CARD_CONFIGS = [
   },
 ];
 
+// ---- History panel ----
+
+export function renderHistoryPanel({ container, store, copyValue, showToast }) {
+  if (!container) return;
+
+  const list = container.querySelector("[data-history-list]");
+  const emptyState = container.querySelector("[data-history-empty]");
+  const clearButton = container.querySelector("[data-action='clear-history']");
+
+  if (!list) return;
+
+  function renderEntries() {
+    const entries = store.getAll();
+    list.innerHTML = "";
+
+    if (entries.length === 0) {
+      if (emptyState) emptyState.hidden = false;
+      return;
+    }
+
+    if (emptyState) emptyState.hidden = true;
+
+    entries.forEach((entry) => {
+      const li = document.createElement("li");
+      li.className = "flex items-center justify-between gap-3 py-2 border-b border-outline-variant/30 last:border-0";
+
+      const info = document.createElement("div");
+      info.className = "flex-1 min-w-0";
+
+      const preview = document.createElement("span");
+      preview.className = "font-mono text-body-sm text-on-surface block truncate";
+      preview.textContent = formatPreview(entry.value);
+
+      const meta = document.createElement("span");
+      meta.className = "text-body-sm text-secondary block";
+      const time = entry.timestamp.toLocaleTimeString();
+      meta.textContent = `${entry.source} · ${time}`;
+
+      info.append(preview, meta);
+
+      const copyAgainButton = document.createElement("button");
+      copyAgainButton.type = "button";
+      copyAgainButton.className = "p-1 rounded text-on-surface-variant hover:text-primary transition-colors focus-visible:ring-2 focus-visible:ring-primary/40";
+      copyAgainButton.setAttribute("aria-label", `Copy ${entry.source} value again`);
+      copyAgainButton.innerHTML = `<span class="material-symbols-outlined text-[18px]" aria-hidden="true">content_copy</span>`;
+      copyAgainButton.addEventListener("click", async () => {
+        const success = await copyValue(entry.value);
+        if (success) {
+          showToast(`${entry.source} copied again.`);
+        }
+      });
+
+      li.append(info, copyAgainButton);
+      list.appendChild(li);
+    });
+  }
+
+  if (clearButton) {
+    clearButton.addEventListener("click", () => {
+      store.clear();
+      renderEntries();
+    });
+  }
+
+  renderEntries();
+  return renderEntries;
+}
+
+// ---- Auto-clear config ----
+
+const AUTO_CLEAR_OPTIONS = [
+  { value: 10000, label: "10 seconds" },
+  { value: 30000, label: "30 seconds" },
+  { value: 60000, label: "60 seconds" },
+  { value: 0, label: "Never" },
+];
+
+export function getAutoClearMs(selectElement) {
+  if (!selectElement) return () => 30000;
+  return () => Number(selectElement.value) || 0;
+}
+
 // ---- Boot sequence ----
 
 export function boot() {
@@ -388,6 +479,22 @@ export function boot() {
   // Live entropy visualization, refreshed on every successful generation.
   const entropyMap = createEntropyMap(document.getElementById("entropy-canvas"));
 
+  // History store (in-memory, ephemeral)
+  const historyStore = createHistoryStore(20);
+
+  // Auto-clear config
+  const autoClearSelect = document.getElementById("auto-clear-select");
+  const autoClearMs = getAutoClearMs(autoClearSelect);
+
+  // History callback
+  let refreshHistory = null;
+  const onCopy = (entry) => {
+    historyStore.push(entry);
+    if (typeof refreshHistory === "function") {
+      refreshHistory();
+    }
+  };
+
   // Create all cards
   const cards = renderCards({
     app,
@@ -397,11 +504,22 @@ export function boot() {
     showToast,
     secure,
     onGenerate: () => entropyMap.render(),
+    onCopy,
+    autoClearMs,
   });
 
   wireRefreshAll({ refreshAllButton: refreshAll, cards, secure, showToast });
   wireSidebarFilters({ container: document.getElementById("sidebar"), cards });
   updateSecureContextStatus(secure);
+
+  // Wire history panel
+  const historyPanel = document.getElementById("history-panel");
+  refreshHistory = renderHistoryPanel({
+    container: historyPanel,
+    store: historyStore,
+    copyValue: copyToClipboard,
+    showToast,
+  });
 
   // Initial paint + optional manual resample button.
   entropyMap.render();

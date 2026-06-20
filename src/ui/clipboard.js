@@ -41,3 +41,21 @@ function legacyCopy(text) {
     document.body.removeChild(textarea);
   }
 }
+
+/**
+ * Clears the clipboard by writing an empty string.
+ * Graceful degradation — never throws.
+ *
+ * @returns {Promise<boolean>} Whether the clear succeeded
+ */
+export async function clearClipboard() {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    try {
+      await navigator.clipboard.writeText("");
+      return true;
+    } catch {
+      // Fall through to fallback
+    }
+  }
+  return legacyCopy("");
+}

@@ -1,3 +1,6 @@
+import { formatCrackTime } from "../crypto/crack-time.js";
+import { clearClipboard } from "./clipboard.js";
+
 function toInputValue(value) {
   return typeof value === "number" ? String(value) : value;
 }
@@ -6,8 +9,12 @@ function resolveControlValue(control, defaults) {
   return defaults[control.param] ?? control.default;
 }
 
-function setEntropyBadgeContent(badge, entropy) {
-  badge.textContent = `~${entropy} bits`;
+function setEntropyBadgeContent(badge, entropy, showCrackTime) {
+  let text = `~${entropy} bits`;
+  if (showCrackTime) {
+    text += ` · ${formatCrackTime(entropy)}`;
+  }
+  badge.textContent = text;
 }
 
 function setToast(message, onToast) {
@@ -184,6 +191,10 @@ function createControlElement(control, defaults, onParamChange) {
 }
 
 export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate) {
+  const onCopy = config.onCopy || null;
+  const autoClearMs = config.autoClearMs || (() => 0);
+  const showCrackTime = config.showCrackTime || false;
+
   const card = document.createElement("section");
   card.className = "bg-white border border-outline-variant rounded-xl p-6 shadow-sm card-hover flex flex-col transition-all";
   card.id = config.id;
@@ -225,7 +236,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     entropyBadge = document.createElement("div");
     entropyBadge.className = "px-3 py-1 bg-tertiary-container/20 text-tertiary rounded-full font-label-caps text-label-caps";
     if (typeof config.entropy === "function") {
-      setEntropyBadgeContent(entropyBadge, config.entropy(params));
+      setEntropyBadgeContent(entropyBadge, config.entropy(params), showCrackTime);
     }
     header.appendChild(entropyBadge);
   }
@@ -239,7 +250,11 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   function onParamChange(key, value) {
     params[key] = value;
     if (entropyBadge && typeof config.entropy === "function") {
-      setEntropyBadgeContent(entropyBadge, config.entropy(params));
+      setEntropyBadgeContent(entropyBadge, config.entropy(params), showCrackTime);
+    }
+    // Update "All 4 groups required" label for password card
+    if (groupsRequiredLabel) {
+      updateGroupsRequiredLabel();
     }
   }
 
@@ -247,6 +262,26 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     controls.appendChild(createControlElement(control, params, onParamChange));
   });
   card.appendChild(controls);
+
+  // --- "All 4 character groups required" label (password card only) ---
+  let groupsRequiredLabel = null;
+  const groupParams = ["uppercase", "lowercase", "digits", "symbols"];
+  const hasAllGroupParams = groupParams.every((p) => p in params);
+
+  if (hasAllGroupParams) {
+    groupsRequiredLabel = document.createElement("div");
+    groupsRequiredLabel.className = "text-body-sm text-tertiary font-bold mb-4";
+    groupsRequiredLabel.setAttribute("aria-live", "polite");
+
+    function updateGroupsRequiredLabel() {
+      const allOn = groupParams.every((p) => params[p]);
+      groupsRequiredLabel.textContent = allOn ? "All 4 character groups required" : "";
+      groupsRequiredLabel.hidden = !allOn;
+    }
+
+    updateGroupsRequiredLabel();
+    card.appendChild(groupsRequiredLabel);
+  }
 
   // --- Output ---
   // The placeholder is a sentence, so it renders small and muted; an actual
@@ -256,21 +291,53 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   const OUTPUT_PLACEHOLDER_CLASS = "font-body-sm text-body-sm text-on-surface-variant";
   const OUTPUT_VALUE_CLASS = "font-mono-output text-mono-output text-on-surface";
 
+  // Closure variable: always holds the real generated value (never masked text)
+  let currentValue = "";
+  let valueHidden = false;
+  let autoClearTimer = null;
+
   const resultOutput = document.createElement("output");
   resultOutput.setAttribute("aria-live", "polite");
 
   function showPlaceholder() {
+    currentValue = "";
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_PLACEHOLDER_CLASS}`;
     resultOutput.textContent = PLACEHOLDER_TEXT;
   }
 
   function showValue(value) {
+    currentValue = value;
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_VALUE_CLASS}`;
-    resultOutput.textContent = value;
+    resultOutput.textContent = valueHidden ? "•".repeat(value.length) : value;
   }
 
   showPlaceholder();
-  card.appendChild(resultOutput);
+
+  // Output wrapper with show/hide toggle
+  const outputWrapper = document.createElement("div");
+  outputWrapper.className = "relative";
+  outputWrapper.appendChild(resultOutput);
+
+  // Show/hide toggle button
+  const toggleButton = document.createElement("button");
+  toggleButton.type = "button";
+  toggleButton.dataset.action = "toggle-visibility";
+  toggleButton.className = "absolute top-2 right-2 p-1 rounded text-on-surface-variant hover:text-on-surface transition-colors focus-visible:ring-2 focus-visible:ring-primary/40";
+  toggleButton.setAttribute("aria-label", "Hide value");
+  toggleButton.innerHTML = `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility</span>`;
+  toggleButton.hidden = true; // Hidden until a value is generated
+
+  toggleButton.addEventListener("click", () => {
+    valueHidden = !valueHidden;
+    resultOutput.textContent = valueHidden ? "•".repeat(currentValue.length) : currentValue;
+    toggleButton.setAttribute("aria-label", valueHidden ? "Show value" : "Hide value");
+    toggleButton.innerHTML = valueHidden
+      ? `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility_off</span>`
+      : `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility</span>`;
+  });
+
+  outputWrapper.appendChild(toggleButton);
+  card.appendChild(outputWrapper);
 
   // --- Error area ---
   const errorArea = document.createElement("div");
@@ -311,18 +378,25 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       const result = await Promise.resolve(config.generator(params));
       showValue(result.value);
       copyButton.disabled = false;
+      toggleButton.hidden = false;
+
+      // Reset visibility on new generation
+      valueHidden = false;
+      toggleButton.setAttribute("aria-label", "Hide value");
+      toggleButton.innerHTML = `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility</span>`;
 
       if (typeof onGenerate === "function") {
         onGenerate(result);
       }
 
       if (entropyBadge && result.entropy !== undefined) {
-        setEntropyBadgeContent(entropyBadge, result.entropy);
+        setEntropyBadgeContent(entropyBadge, result.entropy, showCrackTime);
       }
 
       return result;
     } catch (error) {
       showPlaceholder();
+      toggleButton.hidden = true;
       errorArea.textContent = error.message || "Generation failed";
       errorArea.hidden = false;
       copyButton.disabled = true;
@@ -338,15 +412,32 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   });
 
   copyButton.addEventListener("click", async () => {
-    const value = resultOutput.textContent;
-    if (!value || value === PLACEHOLDER_TEXT) {
+    if (!currentValue) {
       return;
     }
 
-    const success = await copyToClipboard(value);
+    const success = await copyToClipboard(currentValue);
     if (!success) {
       setToast(`Copy failed for ${config.title}.`, onToast);
       return;
+    }
+
+    // Push to history
+    if (typeof onCopy === "function") {
+      onCopy({ value: currentValue, timestamp: new Date(), source: config.title });
+    }
+
+    // Schedule auto-clear
+    if (autoClearTimer) {
+      clearTimeout(autoClearTimer);
+      autoClearTimer = null;
+    }
+    const clearMs = autoClearMs();
+    if (clearMs > 0) {
+      autoClearTimer = setTimeout(() => {
+        clearClipboard();
+        autoClearTimer = null;
+      }, clearMs);
     }
 
     copyButton.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">check</span>`;

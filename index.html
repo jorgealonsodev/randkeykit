@@ -244,6 +244,34 @@
       <!-- Generator cards grid (JS-injected) -->
       <div id="app" class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter" aria-live="polite"></div>
 
+      <!-- Auto-clear clipboard config -->
+      <div class="mt-section-gap flex items-center gap-4">
+        <label for="auto-clear-select" class="font-label-caps text-label-caps text-secondary uppercase">Auto-clear clipboard after</label>
+        <select id="auto-clear-select" class="bg-surface-container-low border border-outline-variant rounded-lg p-2 text-body-sm outline-none focus:ring-2 focus:ring-primary/20">
+          <option value="10000">10 seconds</option>
+          <option value="30000" selected>30 seconds</option>
+          <option value="60000">60 seconds</option>
+          <option value="0">Never</option>
+        </select>
+      </div>
+
+      <!-- Session history panel -->
+      <details id="history-panel" class="mt-gutter bg-white border border-outline-variant rounded-2xl shadow-sm overflow-hidden">
+        <summary class="p-6 border-b border-outline-variant bg-surface-container-low cursor-pointer flex justify-between items-center">
+          <h2 class="font-headline-md text-headline-md">Session History</h2>
+          <span class="text-body-sm text-secondary">In-memory only — cleared on reload</span>
+        </summary>
+        <div class="p-6">
+          <div class="flex justify-end mb-4">
+            <button type="button" data-action="clear-history" class="px-4 py-2 text-body-sm text-error hover:bg-error-container/10 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-error/40" aria-label="Clear all history">
+              Clear history
+            </button>
+          </div>
+          <p data-history-empty class="text-body-sm text-secondary text-center py-4">No copies yet. History appears here as you copy values.</p>
+          <ul data-history-list class="divide-y divide-outline-variant/30" aria-live="polite"></ul>
+        </div>
+      </details>
+
       <!-- Dashboard row -->
       <div class="mt-section-gap grid grid-cols-1 lg:grid-cols-12 gap-gutter">
 

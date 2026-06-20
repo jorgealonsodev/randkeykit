@@ -145,6 +145,23 @@
     cursor: pointer;
     border: none;
   }
+
+  /* Focus-visible ring for all interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  .rand-range:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 4px;
+  }
 }
 
 @layer utilities {
