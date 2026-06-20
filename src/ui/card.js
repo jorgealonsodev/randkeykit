@@ -642,7 +642,9 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       const result = await resolveBatchResult(config, params);
       showValue(result.values, result.outputs || []);
       copyButton.disabled = false;
-      setExportEnabled(result.outputs?.length ? false : true);
+      // Enable export for every successful generation, including keypairs whose
+      // values come from structured outputs (public/private PEM).
+      setExportEnabled(true);
       toggleButton.hidden = false;
 
       // Reset visibility on new generation

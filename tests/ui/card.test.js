@@ -351,6 +351,40 @@ test("structured keypair outputs render in separate labeled blocks", async () =>
   }
 });
 
+test("export is enabled and opens after generating structured (keypair) outputs", async () => {
+  const restoreDom = installDom();
+
+  try {
+    const card = createGeneratorCard(
+      createTestConfig(async () => ({
+        value: "combined",
+        outputs: [
+          { label: "Public Key", value: "-----BEGIN PUBLIC KEY-----\nAAA\n-----END PUBLIC KEY-----" },
+          { label: "Private Key", value: "-----BEGIN PRIVATE KEY-----\nBBB\n-----END PRIVATE KEY-----" },
+        ],
+      })),
+      async () => true,
+      () => {},
+    );
+
+    document.body.appendChild(card);
+
+    const exportButton = card.querySelector('[data-action="export"]');
+    assert.equal(exportButton.disabled, true, "Disabled before generation");
+
+    card.querySelector('[data-action="generate"]').click();
+    await flushAsyncWork();
+
+    assert.equal(exportButton.disabled, false, "Export enabled after keypair generation");
+
+    const exportMenu = exportButton.nextElementSibling;
+    exportButton.click();
+    assert.equal(exportMenu.hidden, false, "Menu opens for keypair cards");
+  } finally {
+    restoreDom();
+  }
+});
+
 // --- Export Dropdown Tests ---
 
 test("export trigger button is disabled before generate", async () => {
