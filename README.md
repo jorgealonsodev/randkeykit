@@ -83,6 +83,8 @@ For a deeper check, open `http://localhost:8000/verify.html` — it explains how
 
 ## Documentation
 
+🌐 Available in [English](./docs/) · [Español](./docs/es/)
+
 Working on the repo? The guides in [`docs/`](./docs/) go deeper:
 
 | Guide | For |
