@@ -541,14 +541,14 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
   const exportMenu = document.createElement("div");
   exportMenu.setAttribute("role", "menu");
-  exportMenu.className = "absolute right-0 mt-1 bg-white border border-outline-variant rounded-lg shadow-lg p-1 flex flex-col z-10";
+  exportMenu.className = "absolute right-0 mt-1 w-max min-w-[8rem] bg-white border border-outline-variant rounded-lg shadow-lg p-1 flex flex-col z-20";
   exportMenu.hidden = true;
 
   const exportTxtButton = document.createElement("button");
   exportTxtButton.type = "button";
   exportTxtButton.dataset.action = "export-txt";
   exportTxtButton.setAttribute("role", "menuitem");
-  exportTxtButton.className = "px-3 py-2 text-body-sm text-left hover:bg-slate-50 rounded transition-all";
+  exportTxtButton.className = "px-3 py-2 text-body-sm text-left whitespace-nowrap hover:bg-slate-50 rounded transition-all";
   exportTxtButton.textContent = "Export TXT";
 
   const exportCsvButton = document.createElement("button");
