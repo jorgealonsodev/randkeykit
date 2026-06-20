@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: randkeykit:local
+    pull_policy: build
     container_name: randkeykit
     restart: unless-stopped
     ports:
