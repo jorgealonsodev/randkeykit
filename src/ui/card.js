@@ -1,6 +1,9 @@
 import { formatCrackTime } from "../crypto/crack-time.js";
 import { clearClipboard } from "./clipboard.js";
 import { buildCsv, buildEnv, buildText, buildTimestamp, downloadBlob } from "./export.js";
+import { qrToSvg } from "../crypto/qrcode.js";
+
+let cardInstanceId = 0;
 
 function toInputValue(value) {
   return typeof value === "number" ? String(value) : value;
@@ -264,6 +267,7 @@ function createControlElement(control, defaults, onParamChange) {
 }
 
 export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate) {
+  const instanceId = ++cardInstanceId;
   const onCopy = config.onCopy || null;
   const autoClearMs = config.autoClearMs || (() => 0);
   const showCrackTime = config.showCrackTime || false;
@@ -490,58 +494,6 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   outputRegion.appendChild(toggleButton);
   card.appendChild(outputRegion);
 
-  // --- QR slot (optional, for TOTP and future QR-enabled cards) ---
-  const qrContainer = document.createElement("div");
-  qrContainer.className = "qr-svg-container flex flex-col items-center gap-2 mb-4";
-  qrContainer.hidden = true;
-
-  const qrSvgWrapper = document.createElement("div");
-  qrSvgWrapper.className = "qr-svg-wrapper";
-
-  const qrDownloadBtn = document.createElement("button");
-  qrDownloadBtn.type = "button";
-  qrDownloadBtn.className = "px-4 py-2 text-body-sm border border-outline-variant rounded-lg hover:bg-slate-50 transition-all focus-visible:ring-2 focus-visible:ring-primary/40";
-  qrDownloadBtn.textContent = "Download QR";
-  qrDownloadBtn.setAttribute("aria-label", "Download QR code as SVG");
-
-  qrContainer.append(qrSvgWrapper, qrDownloadBtn);
-  card.appendChild(qrContainer);
-
-  const qrHelperNote = document.createElement("p");
-  qrHelperNote.className = "mb-4 text-body-sm text-secondary";
-  qrHelperNote.hidden = true;
-  card.appendChild(qrHelperNote);
-
-  function showQr(svgString, downloadName) {
-    qrSvgWrapper.innerHTML = svgString;
-    qrContainer.hidden = false;
-
-    qrDownloadBtn.onclick = () => {
-      const blob = new Blob([svgString], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = downloadName || "qrcode.svg";
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-  }
-
-  function hideQr() {
-    qrContainer.hidden = true;
-    qrSvgWrapper.innerHTML = "";
-  }
-
-  function hideQrNote() {
-    qrHelperNote.hidden = true;
-    qrHelperNote.textContent = "";
-  }
-
-  function showQrNote(note) {
-    hideQr();
-    qrHelperNote.hidden = false;
-    qrHelperNote.textContent = note;
-  }
 
   // --- Error area ---
   const errorArea = document.createElement("div");
@@ -574,39 +526,97 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   copyButton.setAttribute("aria-label", "Copy to clipboard");
   copyButton.disabled = true;
 
+  // --- Export dropdown ---
+  const exportWrapper = document.createElement("div");
+  exportWrapper.className = "relative";
+
+  const exportButton = document.createElement("button");
+  exportButton.type = "button";
+  exportButton.dataset.action = "export";
+  exportButton.className = "px-3 py-3 border border-outline-variant rounded-lg hover:bg-slate-50 transition-all text-body-sm flex items-center gap-1";
+  exportButton.disabled = true;
+  exportButton.setAttribute("aria-haspopup", "menu");
+  exportButton.setAttribute("aria-expanded", "false");
+  exportButton.innerHTML = `Export <span class="material-symbols-outlined text-[16px]" aria-hidden="true">expand_more</span>`;
+
+  const exportMenu = document.createElement("div");
+  exportMenu.setAttribute("role", "menu");
+  exportMenu.className = "absolute right-0 mt-1 bg-white border border-outline-variant rounded-lg shadow-lg p-1 flex flex-col z-10";
+  exportMenu.hidden = true;
+
   const exportTxtButton = document.createElement("button");
   exportTxtButton.type = "button";
   exportTxtButton.dataset.action = "export-txt";
-  exportTxtButton.className = "px-3 py-3 border border-outline-variant rounded-lg hover:bg-slate-50 transition-all text-body-sm";
+  exportTxtButton.setAttribute("role", "menuitem");
+  exportTxtButton.className = "px-3 py-2 text-body-sm text-left hover:bg-slate-50 rounded transition-all";
   exportTxtButton.textContent = "Export TXT";
-  exportTxtButton.disabled = true;
 
   const exportCsvButton = document.createElement("button");
   exportCsvButton.type = "button";
   exportCsvButton.dataset.action = "export-csv";
+  exportCsvButton.setAttribute("role", "menuitem");
   exportCsvButton.className = exportTxtButton.className;
   exportCsvButton.textContent = "Export CSV";
-  exportCsvButton.disabled = true;
 
   const exportEnvButton = document.createElement("button");
   exportEnvButton.type = "button";
   exportEnvButton.dataset.action = "export-env";
+  exportEnvButton.setAttribute("role", "menuitem");
   exportEnvButton.className = exportTxtButton.className;
   exportEnvButton.textContent = "Export ENV";
-  exportEnvButton.disabled = true;
+
+  exportMenu.append(exportTxtButton, exportCsvButton, exportEnvButton);
+  exportWrapper.append(exportButton, exportMenu);
 
   actions.className = "flex flex-wrap gap-2 mt-auto";
-  actions.append(generateButton, copyButton, exportTxtButton, exportCsvButton, exportEnvButton);
+  actions.append(generateButton, copyButton, exportWrapper);
   card.appendChild(actions);
+
+  // --- QR code toggle ---
+  const qrToggleButton = document.createElement("button");
+  qrToggleButton.type = "button";
+  qrToggleButton.dataset.action = "toggle-qr";
+  qrToggleButton.setAttribute("aria-expanded", "false");
+  const qrContainerId = `qr-container-${config.id}-${instanceId}`;
+  qrToggleButton.setAttribute("aria-controls", qrContainerId);
+  qrToggleButton.className = "mt-2 w-full py-2 border border-outline-variant rounded-lg text-body-sm hover:bg-slate-50 transition-all";
+  qrToggleButton.textContent = "Show QR";
+  qrToggleButton.hidden = true;
+  card.appendChild(qrToggleButton);
+
+  const qrContainer = document.createElement("div");
+  qrContainer.id = qrContainerId;
+  qrContainer.setAttribute("role", "img");
+  qrContainer.setAttribute("aria-label", "QR code");
+  qrContainer.className = "mt-2 flex justify-center";
+  qrContainer.hidden = true;
+  card.appendChild(qrContainer);
+
+  function resetQr() {
+    qrToggleButton.hidden = true;
+    qrToggleButton.setAttribute("aria-expanded", "false");
+    qrToggleButton.textContent = "Show QR";
+    qrContainer.hidden = true;
+    qrContainer.innerHTML = "";
+  }
+
+  qrToggleButton.addEventListener("click", () => {
+    const expanded = qrToggleButton.getAttribute("aria-expanded") === "true";
+    qrToggleButton.setAttribute("aria-expanded", String(!expanded));
+    qrContainer.hidden = expanded;
+    qrToggleButton.textContent = expanded ? "Show QR" : "Hide QR";
+  });
 
   function getFilename(extension) {
     return `${config.id}-${buildTimestamp()}.${extension}`;
   }
 
   function setExportEnabled(enabled) {
-    exportTxtButton.disabled = !enabled;
-    exportCsvButton.disabled = !enabled;
-    exportEnvButton.disabled = !enabled;
+    exportButton.disabled = !enabled;
+    if (!enabled) {
+      exportMenu.hidden = true;
+      exportButton.setAttribute("aria-expanded", "false");
+    }
   }
 
   function setAvailability({ supported = true, message = "" } = {}) {
@@ -619,8 +629,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       copyButton.disabled = true;
       setExportEnabled(false);
       toggleButton.hidden = true;
-      hideQr();
-      hideQrNote();
+      resetQr();
       showPlaceholder();
     } else {
       generateButton.disabled = false;
@@ -642,7 +651,6 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       copyButton.disabled = false;
       setExportEnabled(result.outputs?.length ? false : true);
       toggleButton.hidden = false;
-      hideQrNote();
 
       // Reset visibility on new generation
       valueHidden = false;
@@ -653,30 +661,35 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
         onGenerate(result);
       }
 
-      // QR slot: if config has qrSlot callback, call it and render SVG
-      if (typeof config.qrSlot === "function") {
-        const qrData = config.qrSlot(result, params);
-        if (qrData && qrData.note) {
-          showQrNote(qrData.note);
-        } else if (qrData && qrData.svg) {
-          hideQrNote();
-          showQr(qrData.svg, qrData.downloadName);
-        } else {
-          hideQr();
-          hideQrNote();
-        }
-      }
-
       if (entropyBadge && result.entropy !== undefined) {
         setEntropyBadgeContent(entropyBadge, result.entropy, showCrackTime);
+      }
+
+      // --- QR viability check ---
+      resetQr();
+      const batchCount = config.batchable ? Number(params.batchCount ?? 1) : 1;
+      const isSingleValue = result.values.length === 1;
+      const qrPayload = isSingleValue
+        ? (typeof config.qrValue === "function"
+          ? config.qrValue(result, params)
+          : (batchCount === 1 ? result.values[0] : null))
+        : null;
+
+      if (qrPayload) {
+        try {
+          const svg = qrToSvg(qrPayload);
+          qrContainer.innerHTML = svg;
+          qrToggleButton.hidden = false;
+        } catch {
+          // payload too long for QR — keep button hidden
+        }
       }
 
       return result;
     } catch (error) {
       showPlaceholder();
       toggleButton.hidden = true;
-      hideQr();
-      hideQrNote();
+      resetQr();
       errorArea.textContent = error.message || "Generation failed";
       errorArea.hidden = false;
       copyButton.disabled = true;
@@ -731,25 +744,62 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     }, 1500);
   });
 
+  exportButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = exportMenu.hidden === false;
+    exportMenu.hidden = isOpen;
+    exportButton.setAttribute("aria-expanded", String(!isOpen));
+    if (isOpen === false) {
+      // Menu just opened — move focus to the first menuitem
+      const firstItem = exportMenu.querySelector('[role="menuitem"]');
+      if (firstItem) firstItem.focus();
+    }
+  });
+
+  // Close on Escape — return focus to trigger button
+  card.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !exportMenu.hidden) {
+      exportMenu.hidden = true;
+      exportButton.setAttribute("aria-expanded", "false");
+      exportButton.focus();
+    }
+  });
+
+  // Close on outside click — use AbortController so the listener can be cleaned up
+  const abortController = new AbortController();
+  document.addEventListener("click", function closeExportMenu(e) {
+    if (!exportWrapper.contains(e.target)) {
+      exportMenu.hidden = true;
+      exportButton.setAttribute("aria-expanded", "false");
+    }
+  }, { capture: true, signal: abortController.signal });
+
   exportTxtButton.addEventListener("click", () => {
     if (currentValues.length === 0) return;
+    exportMenu.hidden = true;
+    exportButton.setAttribute("aria-expanded", "false");
     downloadBlob(getFilename("txt"), "text/plain;charset=utf-8", buildText(currentValues));
     setToast(`${config.title} exported as TXT.`, onToast);
   });
 
   exportCsvButton.addEventListener("click", () => {
     if (currentValues.length === 0) return;
+    exportMenu.hidden = true;
+    exportButton.setAttribute("aria-expanded", "false");
     downloadBlob(getFilename("csv"), "text/csv;charset=utf-8", buildCsv(currentValues));
     setToast(`${config.title} exported as CSV.`, onToast);
   });
 
   exportEnvButton.addEventListener("click", () => {
     if (currentValues.length === 0) return;
+    exportMenu.hidden = true;
+    exportButton.setAttribute("aria-expanded", "false");
     downloadBlob(getFilename("env"), "text/plain;charset=utf-8", buildEnv(currentValues, exportKeyName));
     setToast(`${config.title} exported as ENV.`, onToast);
   });
 
   card.generateValue = generateValue;
   card.setAvailability = setAvailability;
+  card.destroy = () => abortController.abort();
   return card;
 }

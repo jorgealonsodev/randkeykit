@@ -22,13 +22,12 @@ import { generateHMACKey } from "./generators/hmac-key.js";
 import { generateSessionToken } from "./generators/session-token.js";
 import { generateCSRFToken } from "./generators/csrf-token.js";
 import { generateTOTPSecret } from "./generators/totp-secret.js";
+import { buildOtpauthUri } from "./crypto/otpauth.js";
 import { generateUuid } from "./generators/uuid.js";
 import { generateJwtSecretCard } from "./generators/jwt-secret.js";
 import { generateRSAKeypair } from "./generators/rsa-keypair.js";
 import { generateECDSAKeypair } from "./generators/ecdsa-keypair.js";
 import { generateEd25519Keypair, isEd25519Supported } from "./generators/ed25519-keypair.js";
-import { qrToSvg } from "./crypto/qrcode.js";
-
 export const GENERATE_PLACEHOLDER = "Generate a new value to preview it here.";
 const REFRESH_ALL_DEFAULT_LABEL = `<span class="material-symbols-outlined">refresh</span> Refresh All`;
 const REFRESH_ALL_LOADING_LABEL = `<span class="material-symbols-outlined">progress_activity</span> Refreshing…`;
@@ -481,23 +480,18 @@ const CARD_CONFIGS = [
       { type: "text", label: "Issuer", param: "issuer", default: "RandKeyKit", placeholder: "Authenticator issuer" },
       { type: "text", label: "Account", param: "account", default: "", placeholder: "user@example.com" },
     ],
-    qrSlot: (result) => {
-      if ((result.values?.length ?? 1) > 1) {
-        return { note: "QR available only for a single secret at a time." };
-      }
-
-      if (!result.otpauthUri) {
-        return null;
-      }
-
-      return {
-        svg: qrToSvg(result.otpauthUri, { moduleSize: 4, margin: 2 }),
-        downloadName: "totp-qr.svg",
-      };
-    },
     showEntropy: false,
     batchable: true,
     exportKeyName: "totp-secret",
+    qrValue: (result, params) => {
+      const secret = result.values?.[0];
+      if (!secret) return null;
+      return buildOtpauthUri({
+        secret,
+        issuer: params.issuer || "RandKeyKit",
+        account: params.account || "",
+      });
+    },
   },
   {
     id: "rsa-keypair",
