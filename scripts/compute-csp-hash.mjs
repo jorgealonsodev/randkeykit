@@ -16,7 +16,7 @@ if (hashes.length === 0) {
   process.exit(0);
 }
 
-const cspRegex = /script-src 'self'/;
+const cspRegex = /script-src 'self'(?:\s+'sha256-[^']+')*/;
 const replacement = `script-src 'self' ${hashes.join(' ')}`;
 
 if (!cspRegex.test(html)) {
