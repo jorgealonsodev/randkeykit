@@ -7,6 +7,14 @@ services:
     pull_policy: build
     container_name: randkeykit
     restart: unless-stopped
+    environment:
+      GOOGLE_SITE_VERIFICATION: "${GOOGLE_SITE_VERIFICATION:-}"
+    # Init hook the base image runs on every (re)deploy: recreate the Google
+    # Search Console verification file in the web root from the token in .env.
+    configs:
+      - source: google-verification
+        target: /docker-entrypoint.d/99-google-verification.sh
+        mode: 0755
     ports:
       - "${PORT:-8080}:8080"
     healthcheck:
@@ -15,3 +23,15 @@ services:
       timeout: 3s
       retries: 3
       start_period: 5s
+
+configs:
+  google-verification:
+    # Accepts the bare token or the full "google<token>" form. Deletes any
+    # existing file first, then recreates it. No-op when the token is unset.
+    content: |
+      #!/bin/sh
+      [ -n "$$GOOGLE_SITE_VERIFICATION" ] || exit 0
+      name="google$${GOOGLE_SITE_VERIFICATION#google}"
+      file="/usr/share/nginx/html/$${name}.html"
+      rm -f "$$file"
+      echo "google-site-verification: $${name}.html" > "$$file"
