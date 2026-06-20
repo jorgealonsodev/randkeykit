@@ -309,15 +309,8 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   identity.append(iconTile, title);
   header.appendChild(identity);
 
-  let entropyBadge = null;
-  if (config.showEntropy) {
-    entropyBadge = document.createElement("div");
-    entropyBadge.className = "px-3 py-1 bg-tertiary-container/20 text-tertiary rounded-full font-label-caps text-label-caps";
-    if (typeof config.entropy === "function") {
-      setEntropyBadgeContent(entropyBadge, config.entropy(params), showCrackTime);
-    }
-    header.appendChild(entropyBadge);
-  }
+  // Entropy/crack-time badge intentionally not rendered in the card header.
+  const entropyBadge = null;
 
   card.appendChild(header);
 

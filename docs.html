@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP MUST be first in <head>, before any <link> or <script> that loads assets -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G92DotoRfuw61aAKA9rnfcTDaGqQBix6FWlruJndYxM=' 'sha256-4YZsZdt5UHOZzRR7SqziK3RunK4dz4aAMeKSW+kNFAU=' 'sha256-d8rgrM4XJFqoLT8bG7cYMu30HXJ0EpyTVIIiG4Bo7bE='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-G92DotoRfuw61aAKA9rnfcTDaGqQBix6FWlruJndYxM=' 'sha256-dkCpyIENRAS2w6CxVBFbjf8MHAJJs5KqQETxwkUF320=' 'sha256-d8rgrM4XJFqoLT8bG7cYMu30HXJ0EpyTVIIiG4Bo7bE='; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RandKeyKit Docs — Passwords, API Keys, JWT, TOTP &amp; Crypto Keys, Offline</title>
   <meta name="description" content="Learn how RandKeyKit generates passwords, passphrases, API keys, JWT secrets, TOTP codes, AES/RSA/Ed25519 keys, and more — all locally in your browser, fully offline.">
@@ -110,7 +110,7 @@
       "name": "Which password length should I use?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "At least 12 characters for personal accounts, 16+ for anything sensitive. The strength badge shows the estimated crack time, so you can see the difference immediately."
+        "text": "At least 12 characters for personal accounts, 16+ for anything sensitive. Longer values are exponentially harder to crack, so use the longest length the service allows."
       }
     },
     {
@@ -390,10 +390,6 @@
           </h2>
           <ul class="space-y-4 text-on-surface-variant">
             <li class="flex gap-3">
-              <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">speed</span>
-              <span><strong class="text-on-surface">Strength estimate.</strong> Every generator shows a live entropy count and a crack-time badge — so you can see the security difference between 12 characters and 20 at a glance.</span>
-            </li>
-            <li class="flex gap-3">
               <span class="material-symbols-outlined text-primary text-[20px] shrink-0" aria-hidden="true">layers</span>
               <span><strong class="text-on-surface">Batch generation.</strong> Use the COUNT control to generate up to 100 values in a single click. All of them stack in the output area and export together.</span>
             </li>
@@ -480,7 +476,7 @@
 
             <div class="border-t border-outline-variant/60 pt-6">
               <h3 class="font-headline-md text-headline-md text-on-surface mb-2">Which password length should I use?</h3>
-              <p class="text-on-surface-variant leading-relaxed">At least 12 characters for personal accounts, 16+ for anything sensitive. The strength badge shows the estimated crack time, so you can see the difference immediately.</p>
+              <p class="text-on-surface-variant leading-relaxed">At least 12 characters for personal accounts, 16+ for anything sensitive. Longer values are exponentially harder to crack, so use the longest length the service allows.</p>
             </div>
 
             <div class="border-t border-outline-variant/60 pt-6">

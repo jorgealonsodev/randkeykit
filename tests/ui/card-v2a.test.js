@@ -146,62 +146,6 @@ test("copy always uses real value even when masked", async () => {
   }
 });
 
-// --- Crack-Time Badge Tests ---
-
-test("entropy badge includes crack-time when showCrackTime is true", async () => {
-  const restoreDom = installDom();
-  try {
-    const card = createGeneratorCard(
-      createTestConfig({
-        showEntropy: true,
-        entropy: () => 80,
-        showCrackTime: true,
-      }),
-      async () => true,
-      () => {},
-    );
-    document.body.appendChild(card);
-
-    const generateButton = card.querySelector('[data-action="generate"]');
-    generateButton.click();
-    await flushAsyncWork();
-
-    // Find the entropy badge (it's a div in the header with the bits text)
-    const badge = card.querySelector(".bg-tertiary-container\\/20");
-    assert.ok(badge, "Badge exists");
-    assert.match(badge.textContent, /~80 bits/, "Shows entropy");
-    assert.match(badge.textContent, /·/, "Has separator");
-  } finally {
-    restoreDom();
-  }
-});
-
-test("entropy badge omits crack-time when showCrackTime is false", async () => {
-  const restoreDom = installDom();
-  try {
-    const card = createGeneratorCard(
-      createTestConfig({
-        showEntropy: true,
-        entropy: () => 80,
-        showCrackTime: false,
-      }),
-      async () => true,
-      () => {},
-    );
-    document.body.appendChild(card);
-
-    const generateButton = card.querySelector('[data-action="generate"]');
-    generateButton.click();
-    await flushAsyncWork();
-
-    const badge = card.querySelector(".bg-tertiary-container\\/20");
-    assert.ok(badge, "Badge exists");
-    assert.equal(badge.textContent, "~80 bits", "Only entropy, no crack-time");
-  } finally {
-    restoreDom();
-  }
-});
-
 // --- History Callback Tests ---
 
 test("onCopy callback fires with entry on successful copy", async () => {
