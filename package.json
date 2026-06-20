@@ -6,6 +6,7 @@
   "scripts": {
     "build:css": "tailwindcss -i src/styles.css -o assets/tailwind.css --minify",
     "watch:css": "tailwindcss -i src/styles.css -o assets/tailwind.css --watch",
+    "prebuild": "node scripts/compute-csp-hash.mjs",
     "test:ui": "node scripts/check-no-only.mjs && node --test --experimental-default-type=module tests/ui/**/*.test.js"
   },
   "devDependencies": {
