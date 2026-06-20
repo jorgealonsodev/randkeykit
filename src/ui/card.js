@@ -391,7 +391,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   // The placeholder is a sentence, so it renders small and muted; an actual
   // generated value switches to the large monospace style meant for keys.
   const PLACEHOLDER_TEXT = "Generate a new value to preview it here.";
-  const OUTPUT_BASE_CLASS = "bg-slate-50 border border-dashed border-outline-variant rounded-lg p-3 text-center break-all mb-4 select-all";
+  const OUTPUT_BASE_CLASS = "block bg-slate-50 border border-dashed border-outline-variant rounded-lg p-3 text-center break-all mb-4 select-all";
   const OUTPUT_PLACEHOLDER_CLASS = "font-body-sm text-body-sm text-on-surface-variant";
   const OUTPUT_VALUE_CLASS = "font-mono-output text-mono-output text-on-surface";
 
@@ -425,7 +425,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       label.textContent = block.label;
 
       const value = document.createElement("pre");
-      value.className = "overflow-auto whitespace-pre-wrap break-all font-mono-output text-body-sm text-on-surface";
+      value.className = "max-h-64 overflow-auto whitespace-pre-wrap break-all font-mono-output text-body-sm text-on-surface";
       value.textContent = valueHidden ? maskValue(block.value) : block.value;
 
       wrapper.append(label, value);
