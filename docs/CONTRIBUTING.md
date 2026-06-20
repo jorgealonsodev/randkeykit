@@ -1,5 +1,7 @@
 # Contributing
 
+🌐 **English** · [Español](./es/CONTRIBUTING.md)
+
 The most common change is **adding a generator**. It takes two files and a config entry — the card UI is generic, so you never write DOM code. This guide covers that path first, then the dev workflow and conventions.
 
 ## Quick path: add a generator

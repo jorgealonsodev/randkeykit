@@ -1,5 +1,7 @@
 # Deployment
 
+🌐 **English** · [Español](./es/DEPLOYMENT.md)
+
 RandKeyKit is fully static — an nginx container serves the files on port 8080, with a TLS-terminating reverse proxy in front (in production: Portainer + nginx-proxy-manager). This doc covers the deploy flow and the **two caching traps** that have caused "I deployed but still see the old version" confusion.
 
 ## Quick path

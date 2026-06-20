@@ -1,5 +1,7 @@
 # RandKeyKit docs
 
+🌐 **English** · [Español](./es/README.md)
+
 Help documentation for working on the repository. Start here:
 
 | Doc | Read it when you want to… |

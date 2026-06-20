@@ -1,5 +1,7 @@
 # Architecture
 
+🌐 **English** · [Español](./es/ARCHITECTURE.md)
+
 RandKeyKit is a **static, zero-dependency, client-side** web app: plain HTML + ES modules served by nginx, with no framework, no bundler, and no runtime network calls. Everything you see is rendered in the browser from a handful of small modules. This doc explains how the pieces fit so you can find your way around quickly.
 
 ## Mental model
