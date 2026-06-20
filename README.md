@@ -25,6 +25,9 @@ python3 -m http.server 8000      # or: npx serve .   |   php -S localhost:8000
 | Salt | 16 bytes, hex | Password hashing (bcrypt/scrypt/argon2) |
 | AES Key | 256-bit, Base64 | Symmetric encryption (AES-GCM) |
 | HMAC Key | 256-bit, Base64 | Message authentication (HMAC-SHA-256) |
+| RSA Keypair | RSA-OAEP 3072, PEM | Public/private keypairs for encryption or signing |
+| ECDSA Keypair | P-256, PEM | Elliptic-curve signing keypairs |
+| Ed25519 Keypair | PEM | Modern signing keypairs when supported by the browser |
 | Session Token | 32 bytes, Base64URL | Opaque session identifiers |
 | CSRF Token | 32 bytes, Base64URL | Anti-CSRF form tokens |
 | TOTP Secret | 160-bit, Base32 | Google Authenticator & compatible apps |
@@ -45,13 +48,14 @@ Requirements: a modern browser (ES modules + Web Crypto) and Node.js for the too
 
 ```bash
 npm run build:css     # compile Tailwind → assets/tailwind.css
+npm run build:hash    # regenerate build-hash.txt
 npm run watch:css     # rebuild on change during development
 npm run test:ui       # headless DOM-contract and generator tests
 ```
 
 The compiled `assets/tailwind.css` is committed, so the site serves as-is without a build step. Fonts (Geist, Inter, JetBrains Mono, Material Symbols) are self-hosted under `assets/fonts/` — no CDN at runtime.
 
-For a deeper check, open `http://localhost:8000/verify.html` — a harness that runs 30+ assertions against every generator and primitive.
+For a deeper check, open `http://localhost:8000/verify.html` — it explains how to verify the zero-network behavior, inspect the service-worker cache, compare `build-hash.txt`, and run the browser-side harness.
 
 <details>
 <summary>Project structure</summary>
@@ -63,12 +67,15 @@ For a deeper check, open `http://localhost:8000/verify.html` — a harness that 
 ├── verify.html             # Verification harness
 ├── tailwind.config.js      # Design tokens (Material 3 palette, type, spacing)
 ├── src/
-│   ├── main.js             # Entry point; builds the 9 cards and wires the UI
+│   ├── main.js             # Entry point; builds the 14 cards, SW registration, and UI wiring
 │   ├── styles.css          # Tailwind entry + @font-face + components
 │   ├── crypto/             # random.js (rejection sampling), encoders.js
 │   ├── generators/         # one module per generator (9 total)
-│   ├── data/words.js       # EFF wordlist (100-word starter)
+│   ├── data/words.js       # Bundled EFF large wordlist (7776 words)
 │   └── ui/                 # card.js, clipboard.js, entropy-map.js
+├── sw.js                   # Static-shell service worker (never caches generated secrets)
+├── build-hash.txt          # Published SHA-256 manifest for local verification
+├── scripts/build-hash.mjs  # Regenerates build-hash.txt
 └── assets/                 # tailwind.css, favicon.svg, fonts/
 ```
 
@@ -96,6 +103,43 @@ Before going public:
 - [ ] HTTPS is terminated by a proxy in front of the container
 - [ ] The page loads and the secure-context banner is **not** shown
 - [ ] Generating a value works (DevTools shows no network calls)
+- [ ] `build-hash.txt` was regenerated after the last asset change
+
+## Offline install + trust verification
+
+- The app registers `/sw.js` and precaches only the static shell: HTML, CSS, icons, fonts, and local JS modules.
+- Generated secrets are **never** written into Cache Storage, IndexedDB, or localStorage by the service worker.
+- After one successful online load, the main shell opens offline and generators still work because everything runs client-side.
+
+### Rebuild the published hash manifest
+
+```bash
+npm run build:hash
+```
+
+This rewrites `build-hash.txt` with:
+
+- the build date
+- the current git commit hash when available
+- one SHA-256 line per tracked app artifact
+- an aggregate SHA-256 over the manifest entries
+
+### Verify it locally
+
+1. Open `build-hash.txt`
+2. Run `sha256sum` over the listed files locally
+3. Compare the hashes line by line
+4. Open `verify.html` and follow the DevTools checklist for zero-network generation and service-worker cache inspection
+
+### Why SRI is not used on self-hosted scripts
+
+RandKeyKit serves all runtime scripts from the same origin. In that setup, adding `integrity="..."` to same-origin scripts does not materially improve the threat model compared with:
+
+- strict same-origin CSP
+- HTTPS
+- the published `build-hash.txt`
+
+If a future cross-origin runtime asset is introduced, that resource **should** use SRI.
 
 ## SEO and Submitting to Search Engines
 

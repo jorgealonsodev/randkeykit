@@ -41,6 +41,18 @@ function normalizeResult(result) {
     return {
       ...result,
       values: result.values.map(String),
+      outputs: Array.isArray(result.outputs)
+        ? result.outputs.map((output) => ({ ...output, label: String(output.label), value: String(output.value) }))
+        : undefined,
+    };
+  }
+
+  if (result && Array.isArray(result.outputs)) {
+    return {
+      ...result,
+      outputs: result.outputs.map((output) => ({ ...output, label: String(output.label), value: String(output.value) })),
+      values: result.values?.map(String)
+        ?? result.outputs.map((output) => String(output.value)),
     };
   }
 
@@ -382,36 +394,76 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   // Closure variable: always holds the real generated value (never masked text)
   let currentValue = "";
   let currentValues = [];
+  let currentOutputBlocks = [];
   let valueHidden = false;
   let autoClearTimer = null;
+  let availabilitySupported = true;
 
   const resultOutput = document.createElement("output");
   resultOutput.setAttribute("aria-live", "polite");
 
+  const outputRegion = document.createElement("div");
+  outputRegion.className = "relative";
+
+  const structuredOutputs = document.createElement("div");
+  structuredOutputs.className = "mb-4 space-y-3";
+  structuredOutputs.hidden = true;
+
+  function renderStructuredOutputs() {
+    structuredOutputs.innerHTML = "";
+
+    currentOutputBlocks.forEach((block) => {
+      const wrapper = document.createElement("section");
+      wrapper.className = "rounded-lg border border-outline-variant bg-slate-50 p-3 text-left";
+
+      const label = document.createElement("p");
+      label.className = "mb-2 font-label-caps text-label-caps text-secondary";
+      label.textContent = block.label;
+
+      const value = document.createElement("pre");
+      value.className = "overflow-auto whitespace-pre-wrap break-all font-mono-output text-body-sm text-on-surface";
+      value.textContent = valueHidden ? maskValue(block.value) : block.value;
+
+      wrapper.append(label, value);
+      structuredOutputs.appendChild(wrapper);
+    });
+  }
+
   function showPlaceholder() {
     currentValue = "";
     currentValues = [];
+    currentOutputBlocks = [];
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_PLACEHOLDER_CLASS}`;
     resultOutput.textContent = PLACEHOLDER_TEXT;
+    resultOutput.hidden = false;
+    structuredOutputs.hidden = true;
+    structuredOutputs.innerHTML = "";
   }
 
-  function showValue(values) {
+  function showValue(values, outputBlocks = []) {
     currentValues = values;
     currentValue = values.join("\n");
+    currentOutputBlocks = outputBlocks;
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_VALUE_CLASS}`;
     resultOutput.classList.toggle("whitespace-pre-wrap", values.length > 1);
     resultOutput.classList.toggle("text-left", values.length > 1);
     resultOutput.classList.toggle("max-h-56", values.length > 1);
     resultOutput.classList.toggle("overflow-auto", values.length > 1);
-    resultOutput.textContent = valueHidden ? maskValue(currentValue) : currentValue;
+    if (outputBlocks.length > 0) {
+      resultOutput.hidden = true;
+      structuredOutputs.hidden = false;
+      renderStructuredOutputs();
+    } else {
+      resultOutput.hidden = false;
+      structuredOutputs.hidden = true;
+      resultOutput.textContent = valueHidden ? maskValue(currentValue) : currentValue;
+    }
   }
 
   showPlaceholder();
 
-  // Output wrapper with show/hide toggle
-  const outputWrapper = document.createElement("div");
-  outputWrapper.className = "relative";
-  outputWrapper.appendChild(resultOutput);
+  outputRegion.appendChild(resultOutput);
+  outputRegion.appendChild(structuredOutputs);
 
   // Show/hide toggle button
   const toggleButton = document.createElement("button");
@@ -424,15 +476,19 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
   toggleButton.addEventListener("click", () => {
     valueHidden = !valueHidden;
-    resultOutput.textContent = valueHidden ? "•".repeat(currentValue.length) : currentValue;
+    if (currentOutputBlocks.length > 0) {
+      renderStructuredOutputs();
+    } else {
+      resultOutput.textContent = valueHidden ? maskValue(currentValue) : currentValue;
+    }
     toggleButton.setAttribute("aria-label", valueHidden ? "Show value" : "Hide value");
     toggleButton.innerHTML = valueHidden
       ? `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility_off</span>`
       : `<span class="material-symbols-outlined text-[20px]" aria-hidden="true">visibility</span>`;
   });
 
-  outputWrapper.appendChild(toggleButton);
-  card.appendChild(outputWrapper);
+  outputRegion.appendChild(toggleButton);
+  card.appendChild(outputRegion);
 
   // --- QR slot (optional, for TOTP and future QR-enabled cards) ---
   const qrContainer = document.createElement("div");
@@ -494,6 +550,11 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   errorArea.hidden = true;
   card.appendChild(errorArea);
 
+  const availabilityNote = document.createElement("p");
+  availabilityNote.className = "mb-4 text-body-sm text-secondary";
+  availabilityNote.hidden = true;
+  card.appendChild(availabilityNote);
+
   // --- Actions ---
   const actions = document.createElement("div");
   actions.className = "flex gap-2 mt-auto";
@@ -548,17 +609,38 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
     exportEnvButton.disabled = !enabled;
   }
 
+  function setAvailability({ supported = true, message = "" } = {}) {
+    availabilitySupported = supported;
+    availabilityNote.hidden = supported || !message;
+    availabilityNote.textContent = message;
+
+    if (!supported) {
+      generateButton.disabled = true;
+      copyButton.disabled = true;
+      setExportEnabled(false);
+      toggleButton.hidden = true;
+      hideQr();
+      hideQrNote();
+      showPlaceholder();
+    } else {
+      generateButton.disabled = false;
+    }
+  }
+
   // --- Generate logic ---
   async function generateValue() {
     try {
+      if (!availabilitySupported) {
+        throw new Error(availabilityNote.textContent || `${config.title} is unavailable in this browser.`);
+      }
       errorArea.hidden = true;
       generateButton.disabled = true;
       generateButton.innerHTML = `<span class="material-symbols-outlined animate-spin" aria-hidden="true">progress_activity</span>`;
 
       const result = await resolveBatchResult(config, params);
-      showValue(result.values);
+      showValue(result.values, result.outputs || []);
       copyButton.disabled = false;
-      setExportEnabled(true);
+      setExportEnabled(result.outputs?.length ? false : true);
       toggleButton.hidden = false;
       hideQrNote();
 
@@ -668,5 +750,6 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   });
 
   card.generateValue = generateValue;
+  card.setAvailability = setAvailability;
   return card;
 }

@@ -199,6 +199,10 @@
           <span class="material-symbols-outlined text-[14px]" aria-hidden="true">verified_user</span>
           LOCAL-ONLY ENGINE
         </span>
+        <span id="offline-ready-badge" hidden class="hidden md:inline-flex items-center gap-2 px-3 py-1 bg-tertiary-container/30 text-tertiary font-label-caps text-label-caps rounded-full">
+          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">offline_bolt</span>
+          OFFLINE READY
+        </span>
       </div>
       <!-- Center: Info pill -->
       <div class="hidden lg:flex items-center px-4 py-2 bg-secondary-container/30 border border-outline-variant rounded-lg text-on-secondary-container font-body-sm text-body-sm">
@@ -346,7 +350,7 @@
               <div>
                 <div class="flex justify-between text-body-sm mb-1">
                   <span>Generators available</span>
-                  <span class="font-bold text-primary">11</span>
+                  <span class="font-bold text-primary">14</span>
                 </div>
                 <div class="w-full h-1.5 bg-slate-100 rounded-full">
                   <div class="w-full h-full bg-primary rounded-full"></div>
@@ -394,11 +398,16 @@
         <a href="#uuid" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">UUID</a>
         <a href="#jwt-secret" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">JWT Secret</a>
         <a href="#totp-secret" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">TOTP Secret</a>
+        <a href="#rsa-keypair" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">RSA Keypair</a>
+        <a href="#ecdsa-keypair" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">ECDSA Keypair</a>
+        <a href="#ed25519-keypair" class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors">Ed25519 Keypair</a>
       </nav>
       <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-4 border-t border-outline-variant">
         <span class="font-body-sm text-body-sm text-secondary">&copy; RandKeyKit — Local-First Cryptography</span>
         <div class="flex gap-6">
           <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="docs.html">Documentation</a>
+          <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="verify.html">Verify it yourself</a>
+          <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="build-hash.txt">Build hash</a>
           <a class="text-on-surface-variant font-body-sm text-body-sm hover:text-primary transition-colors" href="https://github.com/jorgealonsodev/randkeykit" target="_blank" rel="noopener noreferrer">GitHub</a>
         </div>
       </div>

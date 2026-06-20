@@ -37,11 +37,25 @@
     .result-line { margin: var(--space-4) 0; }
     .pass-count { color: var(--color-success); font-weight: 700; }
     .fail-count { color: var(--color-error); font-weight: 700; }
+    .guide-step { margin: var(--space-8) 0; }
+    code { font-family: var(--font-mono); }
   </style>
 </head>
 <body>
   <h1>RandKeyKit — Verification Harness</h1>
-  <p class="summary">Running automated assertions against all 9 generators and crypto primitives...</p>
+  <p class="summary">Use this page to verify the local-first trust story: no network during generation, static service-worker caching only, and a published build hash.</p>
+
+  <section class="test-group" aria-labelledby="verify-yourself-title">
+    <h2 id="verify-yourself-title">Verify it yourself</h2>
+    <ol>
+      <li class="guide-step">Open DevTools → <strong>Network</strong>, keep the tab recording, then generate any key or token on the main page. You should see <strong>zero new network requests</strong> during generation.</li>
+      <li class="guide-step">Open <a href="build-hash.txt">build-hash.txt</a> and compare the published SHA-256 lines with a local `sha256sum` over the same files.</li>
+      <li class="guide-step">Inspect <code>sw.js</code> and confirm the cache list contains only static shell URLs: HTML, CSS, images, fonts, and JS modules.</li>
+      <li class="guide-step">Check the footer link on the main page and confirm everything is same-origin. Because of that, RandKeyKit does <strong>not</strong> add dummy SRI attributes to self-hosted scripts; strict CSP + HTTPS + the published build hash are the stronger trust controls here.</li>
+    </ol>
+  </section>
+
+  <p class="summary">Running automated assertions against the current generators and crypto primitives...</p>
   <div id="results"><p>Loading modules...</p></div>
 
   <script type="module">

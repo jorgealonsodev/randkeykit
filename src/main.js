@@ -24,11 +24,15 @@ import { generateCSRFToken } from "./generators/csrf-token.js";
 import { generateTOTPSecret } from "./generators/totp-secret.js";
 import { generateUuid } from "./generators/uuid.js";
 import { generateJwtSecretCard } from "./generators/jwt-secret.js";
+import { generateRSAKeypair } from "./generators/rsa-keypair.js";
+import { generateECDSAKeypair } from "./generators/ecdsa-keypair.js";
+import { generateEd25519Keypair, isEd25519Supported } from "./generators/ed25519-keypair.js";
 import { qrToSvg } from "./crypto/qrcode.js";
 
 export const GENERATE_PLACEHOLDER = "Generate a new value to preview it here.";
 const REFRESH_ALL_DEFAULT_LABEL = `<span class="material-symbols-outlined">refresh</span> Refresh All`;
 const REFRESH_ALL_LOADING_LABEL = `<span class="material-symbols-outlined">progress_activity</span> Refreshing…`;
+export const OFFLINE_READY_MESSAGE = "Offline shell ready.";
 
 /**
  * Checks that the Web Crypto API is available.
@@ -89,6 +93,44 @@ export function createToastController(toast) {
 
   showToast.timeoutId = 0;
   return showToast;
+}
+
+export function updateOfflineReadyStatus(ready) {
+  const badge = document.getElementById("offline-ready-badge");
+  if (!badge) return;
+
+  badge.hidden = !ready;
+}
+
+export async function registerServiceWorker({ showToast = () => {}, onOfflineReady = () => {} } = {}) {
+  if (!("serviceWorker" in navigator)) {
+    return null;
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.register("/sw.js");
+    await navigator.serviceWorker.ready;
+    onOfflineReady(true);
+    showToast(OFFLINE_READY_MESSAGE);
+    return registration;
+  } catch (error) {
+    console.warn("RandKeyKit: service worker registration failed.", error);
+    return null;
+  }
+}
+
+export async function wireEd25519Availability(card) {
+  if (!card?.setAvailability) return false;
+
+  const supported = await isEd25519Supported();
+  if (!supported) {
+    card.setAvailability({
+      supported: false,
+      message: "Ed25519 is not supported in this browser.",
+    });
+  }
+
+  return supported;
 }
 
 export function renderCards({ app, configs, createCard, copyValue, showToast, secure, onGenerate, onCopy, autoClearMs }) {
@@ -265,7 +307,7 @@ const CARD_CONFIGS = [
       { type: "range", label: "Words", param: "words", min: 3, max: 10, default: 5, hint: "count" },
       { type: "text", label: "Separator", param: "separator", default: "-" },
       { type: "select", label: "Wordlist", param: "wordlist", default: "eff-large", options: [
-        { value: "eff-large", label: "EFF large (demo: 100 words)" },
+        { value: "eff-large", label: "EFF large" },
       ]},
       { type: "checkbox", label: "Capitalize", param: "capitalize", default: false },
       { type: "checkbox", label: "Append number", param: "appendNumber", default: false },
@@ -457,6 +499,55 @@ const CARD_CONFIGS = [
     batchable: true,
     exportKeyName: "totp-secret",
   },
+  {
+    id: "rsa-keypair",
+    title: "RSA Keypair",
+    icon: "vpn_key",
+    category: "keys",
+    description: "Asymmetric encryption or signing keypair with PEM export. RSA-4096 is available but may take 1–3 seconds.",
+    generator: generateRSAKeypair,
+    defaults: { algorithm: "RSA-OAEP", bits: 3072 },
+    controls: [
+      { type: "select", label: "Algorithm", param: "algorithm", default: "RSA-OAEP", options: [
+        { value: "RSA-OAEP", label: "RSA-OAEP (encryption)" },
+        { value: "RSA-PSS", label: "RSA-PSS (signing)" },
+      ]},
+      { type: "select", label: "Key size", param: "bits", default: 3072, parse: Number, options: [
+        { value: 2048, label: "2048-bit" },
+        { value: 3072, label: "3072-bit" },
+        { value: 4096, label: "4096-bit (slower)" },
+      ]},
+    ],
+    showEntropy: false,
+  },
+  {
+    id: "ecdsa-keypair",
+    title: "ECDSA Keypair",
+    icon: "gesture",
+    category: "keys",
+    description: "Signing keypair for elliptic-curve signatures with PKCS#8 and SPKI PEM export.",
+    generator: generateECDSAKeypair,
+    defaults: { curve: "P-256" },
+    controls: [
+      { type: "select", label: "Curve", param: "curve", default: "P-256", options: [
+        { value: "P-256", label: "P-256" },
+        { value: "P-384", label: "P-384" },
+        { value: "P-521", label: "P-521" },
+      ]},
+    ],
+    showEntropy: false,
+  },
+  {
+    id: "ed25519-keypair",
+    title: "Ed25519 Keypair",
+    icon: "signature",
+    category: "keys",
+    description: "Modern signing keypair with graceful browser support detection and PEM export.",
+    generator: generateEd25519Keypair,
+    defaults: {},
+    controls: [],
+    showEntropy: false,
+  },
 ];
 
 // ---- History panel ----
@@ -593,6 +684,7 @@ export function boot() {
   wireRefreshAll({ refreshAllButton: refreshAll, cards, secure, showToast });
   wireSidebarFilters({ container: document.getElementById("sidebar"), cards });
   updateSecureContextStatus(secure);
+  updateOfflineReadyStatus(false);
 
   // Wire history panel
   const historyPanel = document.getElementById("history-panel");
@@ -608,6 +700,18 @@ export function boot() {
   const entropyRefresh = document.getElementById("entropy-refresh");
   if (entropyRefresh) {
     entropyRefresh.addEventListener("click", () => entropyMap.render());
+  }
+
+  if (secure) {
+    const ed25519Card = cards.find((card) => card.id === "ed25519-keypair");
+    void wireEd25519Availability(ed25519Card).catch((error) => {
+      console.warn("RandKeyKit: Ed25519 probe failed.", error);
+    });
+
+    void registerServiceWorker({
+      showToast,
+      onOfflineReady: updateOfflineReadyStatus,
+    });
   }
 }
 

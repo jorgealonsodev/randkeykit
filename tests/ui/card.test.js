@@ -308,3 +308,31 @@ test("card generate uses updated redesigned control values", async () => {
     restoreDom();
   }
 });
+
+test("structured keypair outputs render in separate labeled blocks", async () => {
+  const restoreDom = installDom();
+
+  try {
+    const card = createGeneratorCard(
+      createTestConfig(async () => ({
+        value: "combined",
+        outputs: [
+          { label: "Public Key", value: "-----BEGIN PUBLIC KEY-----\nAAA\n-----END PUBLIC KEY-----" },
+          { label: "Private Key", value: "-----BEGIN PRIVATE KEY-----\nBBB\n-----END PRIVATE KEY-----" },
+        ],
+      })),
+      async () => true,
+      () => {},
+    );
+
+    document.body.appendChild(card);
+    card.querySelector('[data-action="generate"]').click();
+    await flushAsyncWork();
+
+    assert.ok(card.textContent.includes("Public Key"));
+    assert.ok(card.textContent.includes("Private Key"));
+    assert.equal(card.querySelector("output").hidden, true);
+  } finally {
+    restoreDom();
+  }
+});

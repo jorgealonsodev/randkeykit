@@ -8,6 +8,8 @@ import {
   boot,
   createToastController,
   GENERATE_PLACEHOLDER,
+  registerServiceWorker,
+  wireEd25519Availability,
   wireRefreshAll,
   wireSidebarFilters,
 } from "../../src/main.js";
@@ -261,7 +263,7 @@ test("refresh-all insecure contract short-circuits and skips generation", async 
   }
 });
 
-test("boot renders eleven cards and wires refresh-all against the real DOM shell", async () => {
+test("boot renders fourteen cards and wires refresh-all against the real DOM shell", async () => {
   const restoreDom = installDom(`<!doctype html><html><body>
     <main id="app"></main>
     <button id="refresh-all" type="button">Refresh All</button>
@@ -278,7 +280,7 @@ test("boot renders eleven cards and wires refresh-all against the real DOM shell
     boot();
 
     const cards = app.querySelectorAll("section");
-    assert.equal(cards.length, 11);
+    assert.equal(cards.length, 14);
     assert.equal(document.getElementById("secure-context-banner").hidden, true);
 
     refreshAllButton.click();
@@ -290,7 +292,7 @@ test("boot renders eleven cards and wires refresh-all against the real DOM shell
     });
 
     const outputs = [...app.querySelectorAll("output")];
-    assert.equal(outputs.length, 11);
+    assert.equal(outputs.length, 14);
     assert.ok(outputs.some((output) => output.textContent !== GENERATE_PLACEHOLDER));
   } finally {
     restoreCrypto();
@@ -315,17 +317,97 @@ test("boot exposes v2b controls on the live DOM", () => {
     const jwtCard = document.getElementById("jwt-secret");
     const passphraseCard = document.getElementById("passphrase");
     const totpCard = document.getElementById("totp-secret");
+    const rsaCard = document.getElementById("rsa-keypair");
+    const ecdsaCard = document.getElementById("ecdsa-keypair");
+    const ed25519Card = document.getElementById("ed25519-keypair");
 
     assert.ok(apiKeyCard.querySelector('option[value="base58"]'));
     assert.ok(uuidCard);
     assert.ok(jwtCard);
     assert.ok(passphraseCard.textContent.includes("WORDLIST"));
-    assert.ok(passphraseCard.textContent.includes("EFF large (demo: 100 words)"));
+    assert.ok(passphraseCard.textContent.includes("EFF large"));
     assert.ok(totpCard.textContent.includes("ISSUER"));
     assert.ok(totpCard.textContent.includes("ACCOUNT"));
+    assert.ok(rsaCard.textContent.includes("RSA-PSS"));
+    assert.ok(ecdsaCard.textContent.includes("P-521"));
+    assert.ok(ed25519Card);
   } finally {
     restoreCrypto();
     restoreDom();
+  }
+});
+
+test("registerServiceWorker registers /sw.js and marks offline ready", async () => {
+  const restoreDom = installDom();
+
+  try {
+    const toastMessages = [];
+    const previousNavigator = globalThis.navigator;
+    const readyRegistration = { active: true };
+
+    Object.defineProperty(globalThis, "navigator", {
+      configurable: true,
+      writable: true,
+      value: {
+        ...previousNavigator,
+        serviceWorker: {
+          register: async (url) => {
+            assert.equal(url, "/sw.js");
+            return { scope: "/" };
+          },
+          ready: Promise.resolve(readyRegistration),
+        },
+      },
+    });
+
+    let offlineReady = false;
+    const registration = await registerServiceWorker({
+      showToast: (message) => toastMessages.push(message),
+      onOfflineReady: (ready) => { offlineReady = ready; },
+    });
+
+    assert.deepEqual(toastMessages, ["Offline shell ready."]);
+    assert.equal(offlineReady, true);
+    assert.deepEqual(registration, { scope: "/" });
+  } finally {
+    restoreDom();
+  }
+});
+
+test("wireEd25519Availability disables the card when unsupported", async () => {
+  const previousCrypto = globalThis.crypto;
+
+  Object.defineProperty(globalThis, "crypto", {
+    configurable: true,
+    writable: true,
+    value: {
+      subtle: {
+        generateKey: async ({ name }) => {
+          if (name === "Ed25519") {
+            const error = new Error("Not supported");
+            error.name = "NotSupportedError";
+            throw error;
+          }
+          return {};
+        },
+      },
+    },
+  });
+
+  try {
+    const calls = [];
+    const supported = await wireEd25519Availability({
+      setAvailability: (state) => calls.push(state),
+    });
+
+    assert.equal(supported, false);
+    assert.deepEqual(calls, [{ supported: false, message: "Ed25519 is not supported in this browser." }]);
+  } finally {
+    Object.defineProperty(globalThis, "crypto", {
+      configurable: true,
+      writable: true,
+      value: previousCrypto,
+    });
   }
 });
 
