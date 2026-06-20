@@ -107,7 +107,7 @@ module.exports = {
         "stack-gap": "1rem",
       },
       maxWidth: {
-        container: "1440px",
+        container: "1600px",
       },
       borderRadius: {
         none: "0px",
