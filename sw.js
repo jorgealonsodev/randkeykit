@@ -1,4 +1,4 @@
-const CACHE_NAME = "randkeykit-static-v2d";
+const CACHE_NAME = "randkeykit-static-v4";
 
 const STATIC_ASSETS = [
   "/",
