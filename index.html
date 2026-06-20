@@ -189,6 +189,9 @@
     <div class="flex justify-between items-center w-full px-margin-page py-4 max-w-container mx-auto">
       <!-- Left: Logo + badge -->
       <div class="flex items-center gap-4">
+        <button id="menu-toggle" type="button" class="md:hidden flex h-9 w-9 items-center justify-center rounded-lg text-on-surface hover:bg-surface-container-high transition-colors" aria-label="Open menu" aria-expanded="false" aria-controls="sidebar">
+          <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+        </button>
         <div class="flex items-center gap-2">
           <span class="flex h-9 w-9 items-center justify-center text-primary">
             <span class="material-symbols-outlined text-[22px]" aria-hidden="true">key</span>
@@ -217,8 +220,11 @@
   <!-- App shell: sidebar + main -->
   <div class="flex max-w-container mx-auto min-h-[calc(100vh-72px)]">
 
-    <!-- SideNavBar: category filters for the generator grid -->
-    <aside id="sidebar" class="hidden md:flex flex-col h-full w-64 bg-surface-container-low border-r border-outline-variant p-4 gap-stack-gap shrink-0 sticky top-[73px]">
+    <!-- Mobile drawer backdrop (hidden on md+) -->
+    <div id="sidebar-backdrop" class="md:hidden hidden fixed inset-0 z-40 bg-black/40" aria-hidden="true"></div>
+
+    <!-- SideNavBar: off-canvas drawer on mobile, static sidebar on md+ -->
+    <aside id="sidebar" class="fixed left-0 top-[72px] bottom-0 z-50 w-64 -translate-x-full transition-transform duration-200 flex flex-col overflow-y-auto bg-surface-container-low border-r border-outline-variant p-4 gap-stack-gap md:sticky md:top-[73px] md:bottom-auto md:h-full md:translate-x-0 md:z-auto md:transition-none md:shrink-0 md:overflow-visible">
       <div class="flex flex-col gap-1">
         <button type="button" data-filter="all" class="flex items-center gap-3 px-4 py-3 bg-primary text-white font-bold rounded-lg transition-all">
           <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>

@@ -220,6 +220,40 @@ export function wireSidebarFilters({ container, cards }) {
   });
 }
 
+/**
+ * Wires the mobile menu toggle that opens/closes the off-canvas sidebar drawer.
+ * On md+ the sidebar is static, so closing (translate off-canvas) is a no-op
+ * there because md:translate-x-0 wins. CSP-safe and null-guarded for test DOM.
+ */
+export function wireMobileMenu({ toggle, sidebar, backdrop }) {
+  if (!toggle || !sidebar) return undefined;
+
+  function setOpen(open) {
+    sidebar.classList.toggle("-translate-x-full", !open);
+    sidebar.classList.toggle("translate-x-0", open);
+    if (backdrop) backdrop.classList.toggle("hidden", !open);
+    toggle.setAttribute("aria-expanded", String(open));
+    toggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  }
+
+  const close = () => setOpen(false);
+  const isOpen = () => toggle.getAttribute("aria-expanded") === "true";
+
+  toggle.addEventListener("click", () => setOpen(!isOpen()));
+  if (backdrop) backdrop.addEventListener("click", close);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && isOpen()) close();
+  });
+
+  // Close the drawer after choosing a category or following a link (mobile).
+  sidebar.querySelectorAll("[data-filter], a").forEach((element) => {
+    element.addEventListener("click", close);
+  });
+
+  return { close };
+}
+
 export function wireRefreshAll({ refreshAllButton, cards, secure, showToast }) {
   if (!refreshAllButton) return;
 
@@ -677,6 +711,11 @@ export function boot() {
 
   wireRefreshAll({ refreshAllButton: refreshAll, cards, secure, showToast });
   wireSidebarFilters({ container: document.getElementById("sidebar"), cards });
+  wireMobileMenu({
+    toggle: document.getElementById("menu-toggle"),
+    sidebar: document.getElementById("sidebar"),
+    backdrop: document.getElementById("sidebar-backdrop"),
+  });
   updateSecureContextStatus(secure);
   updateOfflineReadyStatus(false);
 

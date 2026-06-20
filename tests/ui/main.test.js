@@ -10,6 +10,7 @@ import {
   GENERATE_PLACEHOLDER,
   registerServiceWorker,
   wireEd25519Availability,
+  wireMobileMenu,
   wireRefreshAll,
   wireSidebarFilters,
 } from "../../src/main.js";
@@ -453,6 +454,46 @@ test("sidebar filter shows only matching cards and toggles the active button", (
     assert.equal(cards[2].hidden, false);
     assert.equal(allButton.classList.contains("bg-primary"), true);
     assert.equal(keysButton.classList.contains("text-secondary"), true);
+  } finally {
+    restoreDom();
+  }
+});
+
+test("mobile menu toggle opens, closes, and closes on backdrop/filter click", () => {
+  const restoreDom = installDom(`<!doctype html><html><body>
+    <button id="menu-toggle" aria-expanded="false" aria-label="Open menu"></button>
+    <div id="sidebar-backdrop" class="hidden"></div>
+    <aside id="sidebar" class="-translate-x-full">
+      <button data-filter="all">All</button>
+      <a href="docs.html">Docs</a>
+    </aside>
+  </body></html>`);
+
+  try {
+    const toggle = document.getElementById("menu-toggle");
+    const sidebar = document.getElementById("sidebar");
+    const backdrop = document.getElementById("sidebar-backdrop");
+
+    wireMobileMenu({ toggle, sidebar, backdrop });
+
+    assert.equal(toggle.getAttribute("aria-expanded"), "false");
+    assert.equal(sidebar.classList.contains("-translate-x-full"), true);
+
+    toggle.click();
+    assert.equal(toggle.getAttribute("aria-expanded"), "true");
+    assert.equal(sidebar.classList.contains("translate-x-0"), true);
+    assert.equal(sidebar.classList.contains("-translate-x-full"), false);
+    assert.equal(backdrop.classList.contains("hidden"), false);
+
+    backdrop.click();
+    assert.equal(toggle.getAttribute("aria-expanded"), "false");
+    assert.equal(sidebar.classList.contains("-translate-x-full"), true);
+    assert.equal(backdrop.classList.contains("hidden"), true);
+
+    toggle.click();
+    assert.equal(toggle.getAttribute("aria-expanded"), "true");
+    sidebar.querySelector('[data-filter="all"]').click();
+    assert.equal(toggle.getAttribute("aria-expanded"), "false");
   } finally {
     restoreDom();
   }
