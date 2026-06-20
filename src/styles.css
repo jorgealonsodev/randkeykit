@@ -58,6 +58,12 @@
     color-scheme: light;
   }
 
+  /* The [hidden] attribute must win over Tailwind display utilities
+     (e.g. .flex), which otherwise override it via equal specificity. */
+  [hidden] {
+    display: none !important;
+  }
+
   body {
     @apply font-body-base;
   }
