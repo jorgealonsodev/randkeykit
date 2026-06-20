@@ -11,6 +11,7 @@ function installDom() {
     window: globalThis.window,
     document: globalThis.document,
     HTMLElement: globalThis.HTMLElement,
+    HTMLSelectElement: globalThis.HTMLSelectElement,
     Event: globalThis.Event,
     Node: globalThis.Node,
   };
@@ -20,13 +21,35 @@ function installDom() {
   globalThis.window = window;
   globalThis.document = window.document;
   globalThis.HTMLElement = window.HTMLElement;
+  globalThis.HTMLSelectElement = window.HTMLSelectElement;
   globalThis.Event = window.Event;
   globalThis.Node = window.Node;
+
+  if (window.HTMLSelectElement) {
+    Object.defineProperty(window.HTMLSelectElement.prototype, "value", {
+      configurable: true,
+      get() {
+        return this.getAttribute("value") ?? this.querySelector("option[selected]")?.value ?? this.firstElementChild?.value ?? "";
+      },
+      set(value) {
+        const nextValue = String(value);
+        this.setAttribute("value", nextValue);
+        [...this.querySelectorAll("option")].forEach((option) => {
+          if (option.value === nextValue) {
+            option.setAttribute("selected", "");
+          } else {
+            option.removeAttribute("selected");
+          }
+        });
+      },
+    });
+  }
 
   return () => {
     globalThis.window = previous.window;
     globalThis.document = previous.document;
     globalThis.HTMLElement = previous.HTMLElement;
+    globalThis.HTMLSelectElement = previous.HTMLSelectElement;
     globalThis.Event = previous.Event;
     globalThis.Node = previous.Node;
   };
@@ -118,6 +141,47 @@ test("card generate success enables copy and emits success toast", async () => {
 
     assert.deepEqual(copiedValues, ["abc123"]);
     assert.deepEqual(toastMessages, ["Test Card copied to clipboard."]);
+  } finally {
+    restoreDom();
+  }
+});
+
+test("batch mode renders N lines and copy uses newline-joined payload", async () => {
+  const restoreDom = installDom();
+  const copiedValues = [];
+
+  try {
+    let callCount = 0;
+    const card = createGeneratorCard(
+      {
+        ...createTestConfig(async () => ({ value: `value-${++callCount}`, entropy: 42 })),
+        batchable: true,
+        defaults: { batchCount: 1 },
+        exportKeyName: "test-card",
+      },
+      async (value) => {
+        copiedValues.push(value);
+        return true;
+      },
+      () => {},
+    );
+
+    document.body.appendChild(card);
+
+    const batchSelect = card.querySelector('select[aria-label="Test Card batch count"]');
+    batchSelect.value = "5";
+    batchSelect.dispatchEvent(new Event("change", { bubbles: true }));
+
+    card.querySelector('[data-action="generate"]').click();
+    await flushAsyncWork();
+
+    const output = card.querySelector("output");
+    assert.equal(output.textContent, "value-1\nvalue-2\nvalue-3\nvalue-4\nvalue-5");
+
+    card.querySelector('[data-action="copy"]').click();
+    await flushAsyncWork();
+
+    assert.deepEqual(copiedValues, ["value-1\nvalue-2\nvalue-3\nvalue-4\nvalue-5"]);
   } finally {
     restoreDom();
   }

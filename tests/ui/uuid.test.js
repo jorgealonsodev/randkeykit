@@ -42,14 +42,11 @@ test("generateUuidV7 returns RFC 9562 v7 format", () => {
   }
 });
 
-test("generateUuid batches unique UUIDs", () => {
+test("generateUuid returns a single UUID per call", () => {
   const restoreCrypto = installCrypto();
 
   try {
-    const values = generateUuid({ version: "v4", count: 5 }).value.split("\n");
-
-    assert.equal(values.length, 5);
-    assert.equal(new Set(values).size, 5);
+    assert.match(generateUuid({ version: "v4" }).value, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
   } finally {
     restoreCrypto();
   }

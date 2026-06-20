@@ -230,6 +230,7 @@ test("onCopy callback fires with entry on successful copy", async () => {
     assert.equal(historyEntries.length, 1);
     assert.equal(historyEntries[0].value, "test-value-12345");
     assert.equal(historyEntries[0].source, "Test Card");
+    assert.equal(historyEntries[0].count, 1);
     assert.ok(historyEntries[0].timestamp instanceof Date);
   } finally {
     restoreDom();

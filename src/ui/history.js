@@ -13,11 +13,17 @@
  * @param {string} value
  * @returns {string}
  */
-export function formatPreview(value) {
-  if (!value || value.length <= 6) {
-    return "•".repeat(value ? value.length : 0);
+export function formatPreview(value, count = 1) {
+  const firstValue = String(value ?? "").split("\n")[0] ?? "";
+  let preview = "";
+
+  if (!firstValue || firstValue.length <= 6) {
+    preview = "•".repeat(firstValue ? firstValue.length : 0);
+  } else {
+    preview = firstValue.slice(0, 4) + "…" + firstValue.slice(-2);
   }
-  return value.slice(0, 4) + "…" + value.slice(-2);
+
+  return count > 1 ? `Batch(${count}): ${preview}` : preview;
 }
 
 /**
@@ -32,18 +38,18 @@ export function createHistoryStore(maxSize = 20) {
   return {
     /**
      * Push a new entry. Evicts oldest if at capacity.
-     * @param {{ value: string, timestamp: Date, source: string }} entry
+     * @param {{ value: string, timestamp: Date, source: string, count?: number }} entry
      */
     push(entry) {
       if (entries.length >= maxSize) {
         entries.shift();
       }
-      entries.push(entry);
+      entries.push({ ...entry, count: entry.count ?? 1 });
     },
 
     /**
      * Returns all entries newest-first.
-     * @returns {Array<{ value: string, timestamp: Date, source: string }>}
+     * @returns {Array<{ value: string, timestamp: Date, source: string, count: number }>}
      */
     getAll() {
       return [...entries].reverse();

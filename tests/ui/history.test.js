@@ -17,6 +17,10 @@ test("formatPreview shows first 4 + ellipsis + last 2 for long values", () => {
   assert.equal(formatPreview("1234567"), "1234…67");
 });
 
+test("formatPreview prefixes batch count for multi-value entries", () => {
+  assert.equal(formatPreview("abcdefghijklmnop\nqrstuvwxyz", 10), "Batch(10): abcd…op");
+});
+
 test("formatPreview handles empty and null", () => {
   assert.equal(formatPreview(""), "");
   assert.equal(formatPreview(null), "");
@@ -33,7 +37,7 @@ test("createHistoryStore starts empty", () => {
 
 test("createHistoryStore push adds entries", () => {
   const store = createHistoryStore();
-  const entry = { value: "abc123", timestamp: new Date(), source: "API Key" };
+  const entry = { value: "abc123", timestamp: new Date(), source: "API Key", count: 1 };
   store.push(entry);
   assert.equal(store.size, 1);
   assert.deepEqual(store.getAll(), [entry]);

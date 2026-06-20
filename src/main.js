@@ -226,6 +226,8 @@ const CARD_CONFIGS = [
     showEntropy: true,
     entropy: (params) => estimateAPIKeyEntropy(params),
     showCrackTime: true,
+    batchable: true,
+    exportKeyName: "api-key",
   },
   {
     id: "password",
@@ -248,6 +250,8 @@ const CARD_CONFIGS = [
     showEntropy: true,
     entropy: (params) => estimatePasswordEntropy(params),
     showCrackTime: true,
+    batchable: true,
+    exportKeyName: "password",
   },
   {
     id: "passphrase",
@@ -269,6 +273,8 @@ const CARD_CONFIGS = [
     showEntropy: true,
     entropy: (params) => estimatePassphraseEntropy(params),
     showCrackTime: true,
+    batchable: true,
+    exportKeyName: "passphrase",
   },
   {
     id: "salt",
@@ -287,6 +293,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "salt",
   },
   {
     id: "aes-key",
@@ -309,6 +317,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "aes-key",
   },
   {
     id: "hmac-key",
@@ -331,6 +341,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "hmac-key",
   },
   {
     id: "session-token",
@@ -349,6 +361,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "session-token",
   },
   {
     id: "csrf-token",
@@ -367,6 +381,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "csrf-token",
   },
   {
     id: "uuid",
@@ -375,15 +391,16 @@ const CARD_CONFIGS = [
     category: "tokens",
     description: "RFC 9562 UUIDs for identifiers, correlation IDs, and sortable event keys.",
     generator: generateUuid,
-    defaults: { version: "v4", count: 1 },
+    defaults: { version: "v4", batchCount: 1 },
     controls: [
       { type: "select", label: "Version", param: "version", default: "v4", options: [
         { value: "v4", label: "UUID v4 (random)" },
         { value: "v7", label: "UUID v7 (time-ordered)" },
       ]},
-      { type: "range", label: "Count", param: "count", min: 1, max: 10, default: 1, hint: "count" },
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "uuid",
   },
   {
     id: "jwt-secret",
@@ -402,6 +419,8 @@ const CARD_CONFIGS = [
       ]},
     ],
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "jwt-secret",
   },
   {
     id: "totp-secret",
@@ -410,7 +429,7 @@ const CARD_CONFIGS = [
     category: "passcodes",
     description: "Base32-encoded secret for Time-based One-Time Passwords (Google Authenticator compatible).",
     generator: generateTOTPSecret,
-    defaults: { bits: 160, issuer: "RandKeyKit", account: "" },
+    defaults: { bits: 160, issuer: "RandKeyKit", account: "", batchCount: 1 },
     controls: [
       { type: "select", label: "Secret size", param: "bits", default: 160, parse: Number, options: [
         { value: 160, label: "160-bit (20B)" },
@@ -421,6 +440,10 @@ const CARD_CONFIGS = [
       { type: "text", label: "Account", param: "account", default: "", placeholder: "user@example.com" },
     ],
     qrSlot: (result) => {
+      if ((result.values?.length ?? 1) > 1) {
+        return { note: "QR available only for a single secret at a time." };
+      }
+
       if (!result.otpauthUri) {
         return null;
       }
@@ -431,6 +454,8 @@ const CARD_CONFIGS = [
       };
     },
     showEntropy: false,
+    batchable: true,
+    exportKeyName: "totp-secret",
   },
 ];
 
@@ -465,7 +490,7 @@ export function renderHistoryPanel({ container, store, copyValue, showToast }) {
 
       const preview = document.createElement("span");
       preview.className = "font-mono text-body-sm text-on-surface block truncate";
-      preview.textContent = formatPreview(entry.value);
+      preview.textContent = formatPreview(entry.value, entry.count);
 
       const meta = document.createElement("span");
       meta.className = "text-body-sm text-secondary block";

@@ -1,5 +1,6 @@
 import { formatCrackTime } from "../crypto/crack-time.js";
 import { clearClipboard } from "./clipboard.js";
+import { buildCsv, buildEnv, buildText, buildTimestamp, downloadBlob } from "./export.js";
 
 function toInputValue(value) {
   return typeof value === "number" ? String(value) : value;
@@ -21,6 +22,66 @@ function setToast(message, onToast) {
   if (typeof onToast === "function") {
     onToast(message);
   }
+}
+
+function maskValue(value) {
+  return [...value].map((character) => (character === "\n" ? "\n" : "•")).join("");
+}
+
+function normalizeResult(result) {
+  if (Array.isArray(result)) {
+    return { values: result.map(String) };
+  }
+
+  if (typeof result === "string") {
+    return { values: [result] };
+  }
+
+  if (result && Array.isArray(result.values)) {
+    return {
+      ...result,
+      values: result.values.map(String),
+    };
+  }
+
+  return {
+    ...(result || {}),
+    values: result?.value !== undefined ? [String(result.value)] : [],
+  };
+}
+
+async function resolveBatchResult(config, params) {
+  const batchCount = config.batchable ? Number(params.batchCount ?? 1) : 1;
+
+  if (batchCount < 1 || batchCount > 100) {
+    throw new Error(`Batch count must be 1–100, got ${batchCount}`);
+  }
+
+  const generatorParams = { ...params };
+  delete generatorParams.batchCount;
+
+  if (batchCount === 1) {
+    return normalizeResult(await Promise.resolve(config.generator(generatorParams)));
+  }
+
+  const values = [];
+  let entropy;
+  let extras = {};
+
+  for (let i = 0; i < batchCount; i += 1) {
+    const result = normalizeResult(await Promise.resolve(config.generator(generatorParams)));
+    values.push(...result.values);
+    if (entropy === undefined && result.entropy !== undefined) {
+      entropy = result.entropy;
+    }
+    if (i === 0) {
+      extras = { ...result };
+      delete extras.value;
+      delete extras.values;
+    }
+  }
+
+  return { ...extras, values, entropy };
 }
 
 function buildRangeUnit(control) {
@@ -194,6 +255,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   const onCopy = config.onCopy || null;
   const autoClearMs = config.autoClearMs || (() => 0);
   const showCrackTime = config.showCrackTime || false;
+  const exportKeyName = config.exportKeyName || config.id;
 
   const card = document.createElement("section");
   card.className = "bg-white border border-outline-variant rounded-xl p-6 shadow-sm card-hover flex flex-col transition-all";
@@ -242,6 +304,32 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   }
 
   card.appendChild(header);
+
+  if (config.batchable) {
+    const batchRow = document.createElement("div");
+    batchRow.className = "mb-4 flex items-center gap-3";
+
+    const batchLabel = document.createElement("label");
+    batchLabel.className = "font-label-caps text-label-caps text-secondary";
+    batchLabel.textContent = "COUNT";
+
+    const batchSelect = document.createElement("select");
+    batchSelect.className = "rounded-lg border border-outline-variant bg-surface-container-low px-3 py-2 text-body-sm outline-none focus:ring-2 focus:ring-primary/20";
+    batchSelect.setAttribute("aria-label", `${config.title} batch count`);
+    [1, 5, 10, 25, 50, 100].forEach((optionValue) => {
+      const option = document.createElement("option");
+      option.value = String(optionValue);
+      option.textContent = String(optionValue);
+      option.selected = Number(params.batchCount ?? 1) === optionValue;
+      batchSelect.appendChild(option);
+    });
+    batchSelect.addEventListener("change", () => {
+      params.batchCount = Number(batchSelect.value);
+    });
+
+    batchRow.append(batchLabel, batchSelect);
+    card.appendChild(batchRow);
+  }
 
   // --- Controls ---
   const controls = document.createElement("div");
@@ -293,6 +381,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
   // Closure variable: always holds the real generated value (never masked text)
   let currentValue = "";
+  let currentValues = [];
   let valueHidden = false;
   let autoClearTimer = null;
 
@@ -301,14 +390,20 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
   function showPlaceholder() {
     currentValue = "";
+    currentValues = [];
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_PLACEHOLDER_CLASS}`;
     resultOutput.textContent = PLACEHOLDER_TEXT;
   }
 
-  function showValue(value) {
-    currentValue = value;
+  function showValue(values) {
+    currentValues = values;
+    currentValue = values.join("\n");
     resultOutput.className = `${OUTPUT_BASE_CLASS} ${OUTPUT_VALUE_CLASS}`;
-    resultOutput.textContent = valueHidden ? "•".repeat(value.length) : value;
+    resultOutput.classList.toggle("whitespace-pre-wrap", values.length > 1);
+    resultOutput.classList.toggle("text-left", values.length > 1);
+    resultOutput.classList.toggle("max-h-56", values.length > 1);
+    resultOutput.classList.toggle("overflow-auto", values.length > 1);
+    resultOutput.textContent = valueHidden ? maskValue(currentValue) : currentValue;
   }
 
   showPlaceholder();
@@ -356,6 +451,11 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   qrContainer.append(qrSvgWrapper, qrDownloadBtn);
   card.appendChild(qrContainer);
 
+  const qrHelperNote = document.createElement("p");
+  qrHelperNote.className = "mb-4 text-body-sm text-secondary";
+  qrHelperNote.hidden = true;
+  card.appendChild(qrHelperNote);
+
   function showQr(svgString, downloadName) {
     qrSvgWrapper.innerHTML = svgString;
     qrContainer.hidden = false;
@@ -374,6 +474,17 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   function hideQr() {
     qrContainer.hidden = true;
     qrSvgWrapper.innerHTML = "";
+  }
+
+  function hideQrNote() {
+    qrHelperNote.hidden = true;
+    qrHelperNote.textContent = "";
+  }
+
+  function showQrNote(note) {
+    hideQr();
+    qrHelperNote.hidden = false;
+    qrHelperNote.textContent = note;
   }
 
   // --- Error area ---
@@ -402,8 +513,40 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
   copyButton.setAttribute("aria-label", "Copy to clipboard");
   copyButton.disabled = true;
 
-  actions.append(generateButton, copyButton);
+  const exportTxtButton = document.createElement("button");
+  exportTxtButton.type = "button";
+  exportTxtButton.dataset.action = "export-txt";
+  exportTxtButton.className = "px-3 py-3 border border-outline-variant rounded-lg hover:bg-slate-50 transition-all text-body-sm";
+  exportTxtButton.textContent = "Export TXT";
+  exportTxtButton.disabled = true;
+
+  const exportCsvButton = document.createElement("button");
+  exportCsvButton.type = "button";
+  exportCsvButton.dataset.action = "export-csv";
+  exportCsvButton.className = exportTxtButton.className;
+  exportCsvButton.textContent = "Export CSV";
+  exportCsvButton.disabled = true;
+
+  const exportEnvButton = document.createElement("button");
+  exportEnvButton.type = "button";
+  exportEnvButton.dataset.action = "export-env";
+  exportEnvButton.className = exportTxtButton.className;
+  exportEnvButton.textContent = "Export ENV";
+  exportEnvButton.disabled = true;
+
+  actions.className = "flex flex-wrap gap-2 mt-auto";
+  actions.append(generateButton, copyButton, exportTxtButton, exportCsvButton, exportEnvButton);
   card.appendChild(actions);
+
+  function getFilename(extension) {
+    return `${config.id}-${buildTimestamp()}.${extension}`;
+  }
+
+  function setExportEnabled(enabled) {
+    exportTxtButton.disabled = !enabled;
+    exportCsvButton.disabled = !enabled;
+    exportEnvButton.disabled = !enabled;
+  }
 
   // --- Generate logic ---
   async function generateValue() {
@@ -412,10 +555,12 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       generateButton.disabled = true;
       generateButton.innerHTML = `<span class="material-symbols-outlined animate-spin" aria-hidden="true">progress_activity</span>`;
 
-      const result = await Promise.resolve(config.generator(params));
-      showValue(result.value);
+      const result = await resolveBatchResult(config, params);
+      showValue(result.values);
       copyButton.disabled = false;
+      setExportEnabled(true);
       toggleButton.hidden = false;
+      hideQrNote();
 
       // Reset visibility on new generation
       valueHidden = false;
@@ -429,10 +574,14 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       // QR slot: if config has qrSlot callback, call it and render SVG
       if (typeof config.qrSlot === "function") {
         const qrData = config.qrSlot(result, params);
-        if (qrData && qrData.svg) {
+        if (qrData && qrData.note) {
+          showQrNote(qrData.note);
+        } else if (qrData && qrData.svg) {
+          hideQrNote();
           showQr(qrData.svg, qrData.downloadName);
         } else {
           hideQr();
+          hideQrNote();
         }
       }
 
@@ -445,9 +594,11 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       showPlaceholder();
       toggleButton.hidden = true;
       hideQr();
+      hideQrNote();
       errorArea.textContent = error.message || "Generation failed";
       errorArea.hidden = false;
       copyButton.disabled = true;
+      setExportEnabled(false);
       throw error;
     } finally {
       generateButton.disabled = false;
@@ -472,7 +623,7 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
 
     // Push to history
     if (typeof onCopy === "function") {
-      onCopy({ value: currentValue, timestamp: new Date(), source: config.title });
+      onCopy({ value: currentValue, timestamp: new Date(), source: config.title, count: currentValues.length || 1 });
     }
 
     // Schedule auto-clear
@@ -496,6 +647,24 @@ export function createGeneratorCard(config, copyToClipboard, onToast, onGenerate
       copyButton.innerHTML = `<span class="material-symbols-outlined" aria-hidden="true">content_copy</span>`;
       copyButton.classList.remove("border-tertiary/30", "bg-tertiary/10", "text-tertiary");
     }, 1500);
+  });
+
+  exportTxtButton.addEventListener("click", () => {
+    if (currentValues.length === 0) return;
+    downloadBlob(getFilename("txt"), "text/plain;charset=utf-8", buildText(currentValues));
+    setToast(`${config.title} exported as TXT.`, onToast);
+  });
+
+  exportCsvButton.addEventListener("click", () => {
+    if (currentValues.length === 0) return;
+    downloadBlob(getFilename("csv"), "text/csv;charset=utf-8", buildCsv(currentValues));
+    setToast(`${config.title} exported as CSV.`, onToast);
+  });
+
+  exportEnvButton.addEventListener("click", () => {
+    if (currentValues.length === 0) return;
+    downloadBlob(getFilename("env"), "text/plain;charset=utf-8", buildEnv(currentValues, exportKeyName));
+    setToast(`${config.title} exported as ENV.`, onToast);
   });
 
   card.generateValue = generateValue;
