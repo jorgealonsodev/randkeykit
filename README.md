@@ -69,10 +69,10 @@ For a deeper check, open `http://localhost:8000/verify.html` — it explains how
 ├── src/
 │   ├── main.js             # Entry point; builds the 14 cards, SW registration, and UI wiring
 │   ├── styles.css          # Tailwind entry + @font-face + components
-│   ├── crypto/             # random.js (rejection sampling), encoders.js
-│   ├── generators/         # one module per generator (9 total)
+│   ├── crypto/             # random (rejection sampling), encoders, pem, otpauth, qrcode, crack-time…
+│   ├── generators/         # one module per generator (14 total)
 │   ├── data/words.js       # Bundled EFF large wordlist (7776 words)
-│   └── ui/                 # card.js, clipboard.js, entropy-map.js
+│   └── ui/                 # card, clipboard, entropy-map, export, history, refresh
 ├── sw.js                   # Static-shell service worker (never caches generated secrets)
 ├── build-hash.txt          # Published SHA-256 manifest for local verification
 ├── scripts/build-hash.mjs  # Regenerates build-hash.txt
@@ -80,6 +80,18 @@ For a deeper check, open `http://localhost:8000/verify.html` — it explains how
 ```
 
 </details>
+
+## Documentation
+
+Working on the repo? The guides in [`docs/`](./docs/) go deeper:
+
+| Guide | For |
+|-------|-----|
+| [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | How the app is built and where things live |
+| [docs/CONTRIBUTING.md](./docs/CONTRIBUTING.md) | Adding a generator, running tests, conventions |
+| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Shipping a change + the service-worker / nginx cache traps |
+
+Using the app (not the repo)? See the in-app guide at `/docs.html`.
 
 ## Deploy
 
